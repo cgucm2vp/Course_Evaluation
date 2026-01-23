@@ -2,99 +2,97 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import './DataVisualization.css';
 
 function DataVisualization({ stats }) {
-    // 準備長條圖數據
+    // 準備長條圖數據，包含獨立樣本數
     const barData = [
-        { name: '甜度', value: stats.sweetness, fill: 'hsl(340, 82%, 52%)' },
-        { name: '涼度', value: stats.coolness, fill: 'hsl(200, 82%, 52%)' },
-        { name: '有料程度', value: stats.richness, fill: 'hsl(142, 71%, 45%)' }
-    ];
-
-    // 準備雷達圖數據
-    const radarData = [
-        { subject: '甜度', value: stats.sweetness, fullMark: 10 },
-        { subject: '涼度', value: stats.coolness, fullMark: 10 },
-        { subject: '有料程度', value: stats.richness, fullMark: 10 }
+        {
+            name: '甜度',
+            value: stats.sweetness,
+            count: stats.sweetnessCount,
+            fill: 'var(--color-primary)'
+        },
+        {
+            name: '涼度',
+            value: stats.coolness,
+            count: stats.coolnessCount,
+            fill: 'var(--color-secondary)'
+        },
+        {
+            name: '有料程度',
+            value: stats.richness,
+            count: stats.richnessCount,
+            fill: 'var(--color-accent)'
+        }
     ];
 
     return (
         <div className="data-visualization">
             <div className="stats-summary">
                 <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'hsl(340, 82%, 95%)' }}>🍭</div>
+                    <div className="stat-icon" style={{ background: 'var(--color-primary-light)' }}>🍭</div>
                     <div className="stat-info">
-                        <div className="stat-label">甜度</div>
-                        <div className="stat-value">{stats.sweetness.toFixed(1)}</div>
+                        <div className="stat-label">甜度 ({stats.sweetnessCount}人)</div>
+                        <div className="stat-value">{stats.sweetness.toFixed(1)} <small>/ 5</small></div>
                     </div>
                 </div>
 
                 <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'hsl(200, 82%, 95%)' }}>❄️</div>
+                    <div className="stat-icon" style={{ background: 'var(--color-bg-secondary)' }}>❄️</div>
                     <div className="stat-info">
-                        <div className="stat-label">涼度</div>
-                        <div className="stat-value">{stats.coolness.toFixed(1)}</div>
+                        <div className="stat-label">涼度 ({stats.coolnessCount}人)</div>
+                        <div className="stat-value">{stats.coolness.toFixed(1)} <small>/ 5</small></div>
                     </div>
                 </div>
 
                 <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'hsl(142, 71%, 95%)' }}>📚</div>
+                    <div className="stat-icon" style={{ background: 'var(--color-primary-light)', filter: 'hue-rotate(120deg)' }}>📚</div>
                     <div className="stat-info">
-                        <div className="stat-label">有料程度</div>
-                        <div className="stat-value">{stats.richness.toFixed(1)}</div>
+                        <div className="stat-label">有料程度 ({stats.richnessCount}人)</div>
+                        <div className="stat-value">{stats.richness.toFixed(1)} <small>/ 5</small></div>
                     </div>
                 </div>
 
                 <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'hsl(280, 70%, 95%)' }}>👥</div>
+                    <div className="stat-icon" style={{ background: 'var(--color-bg-secondary)' }}>👥</div>
                     <div className="stat-info">
-                        <div className="stat-label">樣本數</div>
+                        <div className="stat-label">總評鑑數</div>
                         <div className="stat-value">{stats.sampleCount}</div>
                     </div>
                 </div>
             </div>
 
-            <div className="charts-container">
+            <div className="charts-container single-chart">
                 <div className="chart-wrapper">
-                    <h3 className="chart-title">長條圖分析</h3>
+                    <h3 className="chart-title">維度分析 (滿分 5 分)</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={barData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                            <XAxis dataKey="name" stroke="var(--color-text-secondary)" />
-                            <YAxis domain={[0, 10]} stroke="var(--color-text-secondary)" />
+                        <BarChart data={barData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                stroke="var(--color-text-secondary)"
+                                tick={{ fontSize: 14 }}
+                            />
+                            <YAxis
+                                domain={[0, 5]}
+                                stroke="var(--color-text-secondary)"
+                                ticks={[0, 1, 2, 3, 4, 5]}
+                            />
                             <Tooltip
+                                formatter={(value, name, props) => [`${value.toFixed(1)} 分 (${props.payload.count} 人評價)`, name]}
                                 contentStyle={{
                                     background: 'var(--color-surface)',
                                     border: '1px solid var(--color-border)',
-                                    borderRadius: 'var(--radius-md)'
+                                    borderRadius: 'var(--radius-md)',
+                                    boxShadow: 'var(--shadow-md)'
                                 }}
                             />
-                            <Bar dataKey="value" radius={[8, 8, 0, 0]} />
+                            <Bar
+                                dataKey="value"
+                                radius={[4, 4, 0, 0]}
+                                barSize={60}
+                            />
                         </BarChart>
                     </ResponsiveContainer>
-                </div>
-
-                <div className="chart-wrapper">
-                    <h3 className="chart-title">雷達圖分析</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <RadarChart data={radarData}>
-                            <PolarGrid stroke="var(--color-border)" />
-                            <PolarAngleAxis dataKey="subject" stroke="var(--color-text-secondary)" />
-                            <PolarRadiusAxis domain={[0, 10]} stroke="var(--color-text-secondary)" />
-                            <Radar
-                                name="評分"
-                                dataKey="value"
-                                stroke="var(--color-primary)"
-                                fill="var(--color-primary)"
-                                fillOpacity={0.6}
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 'var(--radius-md)'
-                                }}
-                            />
-                        </RadarChart>
-                    </ResponsiveContainer>
+                    <p className="chart-hint">※ 滑鼠移至長條上方可查看各維度獨立樣本數</p>
                 </div>
             </div>
         </div>

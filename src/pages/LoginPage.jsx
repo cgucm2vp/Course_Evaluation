@@ -35,7 +35,7 @@ function LoginPage() {
             <div className="login-container">
                 <div className="login-card fade-in">
                     <div className="login-header">
-                        <h1 className="login-title">課程評鑑查詢系統</h1>
+                        <h1 className="login-title">課程指引與評鑑查詢系統</h1>
                         <p className="login-subtitle">探索最真實的課程評價</p>
                     </div>
 
@@ -85,7 +85,7 @@ function LoginPage() {
                 </div>
 
                 <div className="login-footer">
-                    <p>© 2026 課程評鑑查詢系統</p>
+                    <p>© 長庚中醫系學會所有</p>
                 </div>
             </div>
         </div>

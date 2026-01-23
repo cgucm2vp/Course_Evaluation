@@ -7,6 +7,12 @@
     display: flex;
     flex-direction: column;
     animation: fadeIn var(--transition-base);
+    transition: all 0.3s ease;
+}
+
+.review-card.expanded {
+    height: auto;
+    min-height: 300px;
 }
 
 .review-header {
@@ -72,14 +78,49 @@
     flex: 1;
     color: var(--color-text-secondary);
     line-height: 1.8;
-    font-size: 0.9375rem;
+    font-size: 1rem;
+    /* 增加字體大小以利閱讀 */
     white-space: pre-wrap;
     word-wrap: break-word;
+    margin-bottom: var(--spacing-md);
+}
+
+.read-more-btn {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: var(--spacing-xs) 0;
+    align-self: center;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.read-more-btn:hover {
+    opacity: 0.8;
+    text-decoration: underline;
 }
 
 @media (max-width: 768px) {
     .review-card {
-        padding: var(--spacing-md);
-        min-height: 250px;
+        padding: var(--spacing-lg) var(--spacing-md);
+        /* 手機版調整內距 */
+        min-height: auto;
+        /* 手機版自動高度 */
+    }
+
+    .review-text {
+        font-size: 0.95rem;
+        /* 手機版微調字級 */
+        line-height: 1.7;
+    }
+
+    .read-more-btn {
+        padding: var(--spacing-sm) 0;
+        /* 增加點擊區域 */
+        font-size: 0.95rem;
     }
 }

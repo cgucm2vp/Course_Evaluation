@@ -19,6 +19,7 @@ function SearchPage() {
     const [courseMapping, setCourseMapping] = useState({});
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+    const [useDropdown, setUseDropdown] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -60,6 +61,21 @@ function SearchPage() {
             searchParams.shouldMerge = false;
         }
 
+        // 判斷是否為精確匹配：如果是下拉模式則為精確匹配
+        const hasSubcategories = filters.category && courseMapping[filters.category]?.sub && Object.keys(courseMapping[filters.category].sub).length > 0;
+        const isSubcategoryPicked = !!filters.subcategory;
+
+        let isDropdown = false;
+        if (!filters.category) {
+            isDropdown = false;
+        } else if (hasSubcategories && !isSubcategoryPicked) {
+            isDropdown = useDropdown;
+        } else {
+            isDropdown = true;
+        }
+
+        searchParams.isExact = isDropdown;
+
         const result = await api.searchCourses(searchParams);
 
         if (result.success) {
@@ -91,7 +107,11 @@ function SearchPage() {
     };
 
     const handleCourseClick = (course) => {
-        navigate(`/course/${encodeURIComponent(course.name)}/${encodeURIComponent(course.teacher)}`);
+        let url = `/course/${encodeURIComponent(course.name)}/${encodeURIComponent(course.teacher)}`;
+        if (course.year) {
+            url += `?year=${encodeURIComponent(course.year)}`;
+        }
+        navigate(url);
     };
 
     // 取得當前可選課程清單
@@ -99,20 +119,27 @@ function SearchPage() {
         const parent = courseMapping[filters.category];
         if (!parent) return [];
 
+        let list = [];
         if (filters.subcategory) {
             // 如果選了子分類
-            return parent.sub[filters.subcategory] || [];
+            list = parent.sub[filters.subcategory] || [];
         } else {
-            // 如果沒選子分類（或該母分類沒子分類），顯示所有（或是 direct 的）
-            // 這裡建議顯示該母分類下「所有」課程或是僅 direct 課程
-            // 依照使用者邏輯，若是大一課程沒子分類，則顯示該母分類下的課程
-            const allCoursesInParent = [...parent.direct];
-            // 若有子分類則把子分類課程也塞進去，讓使用者即使沒選子分類也能在母分類看到全部
+            // 如果沒選子分類（或該母分類沒子分類），顯示所有
+            list = [...parent.direct];
             Object.values(parent.sub).forEach(subList => {
-                allCoursesInParent.push(...subList);
+                list.push(...subList);
             });
-            return Array.from(new Set(allCoursesInParent)).sort();
         }
+
+        // 去重並按名稱排序
+        const uniqueItems = {};
+        list.forEach(item => {
+            if (!uniqueItems[item.name]) {
+                uniqueItems[item.name] = item;
+            }
+        });
+
+        return Object.values(uniqueItems).sort((a, b) => a.name.localeCompare(b.name));
     };
 
     const availableCourses = getAvailableCourses();
@@ -122,7 +149,7 @@ function SearchPage() {
             <header className="search-header">
                 <div className="container">
                     <div className="header-content">
-                        <h1 className="header-title">課程評鑑查詢</h1>
+                        <h1 className="header-title">課程指引與評鑑查詢系統</h1>
                         <div className="header-actions">
                             <span className="user-name">歡迎，{user?.name}</span>
                             <button onClick={handleLogout} className="btn btn-ghost">登出</button>
@@ -168,19 +195,22 @@ function SearchPage() {
                                 )}
 
                                 <div className="form-group">
-                                    <label className="form-label">課程名稱</label>
-                                    {filters.category ? (
-                                        <select
-                                            className="input"
-                                            value={filters.keyword}
-                                            onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
-                                        >
-                                            <option value="">選擇課程</option>
-                                            {availableCourses.map((name, index) => (
-                                                <option key={index} value={name}>{name}</option>
-                                            ))}
-                                        </select>
-                                    ) : (
+                                    <div className="label-with-mode">
+                                        <label className="form-label">課程名稱</label>
+                                        {filters.category && courseMapping[filters.category]?.sub && Object.keys(courseMapping[filters.category].sub).length > 0 && !filters.subcategory && (
+                                            <button
+                                                type="button"
+                                                className="mode-toggle-btn"
+                                                onClick={() => {
+                                                    setUseDropdown(!useDropdown);
+                                                    setFilters({ ...filters, keyword: '' });
+                                                }}
+                                            >
+                                                {useDropdown ? '⌨️ 手動輸入' : '🖱️ 下拉選單'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    {((!filters.category) || (filters.category && courseMapping[filters.category]?.sub && Object.keys(courseMapping[filters.category].sub).length > 0 && !filters.subcategory && !useDropdown)) ? (
                                         <input
                                             type="text"
                                             className="input"
@@ -188,6 +218,19 @@ function SearchPage() {
                                             onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
                                             placeholder="輸入關鍵字"
                                         />
+                                    ) : (
+                                        <select
+                                            className="input"
+                                            value={filters.keyword}
+                                            onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
+                                        >
+                                            <option value="">選擇課程</option>
+                                            {availableCourses.map((course, index) => (
+                                                <option key={index} value={course.name}>
+                                                    {course.name} ({course.count})
+                                                </option>
+                                            ))}
+                                        </select>
                                     )}
                                 </div>
                             </div>
@@ -211,7 +254,7 @@ function SearchPage() {
                                         className="input"
                                         value={filters.year}
                                         onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-                                        placeholder="例如：2023"
+                                        placeholder="例如：114-2"
                                     />
                                 </div>
                             </div>

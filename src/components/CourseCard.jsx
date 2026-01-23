@@ -4,7 +4,10 @@ function CourseCard({ course, onClick, showViewCount = false }) {
     return (
         <div className="course-card" onClick={onClick}>
             <div className="course-card-header">
-                <h3 className="course-name">{course.name}</h3>
+                <h3 className="course-name">
+                    {course.name}
+                    {course.reviewCount > 0 && <span className="review-stat-count">({course.reviewCount})</span>}
+                </h3>
                 {showViewCount && course.viewCount && (
                     <span className="view-count">👁 {course.viewCount}</span>
                 )}

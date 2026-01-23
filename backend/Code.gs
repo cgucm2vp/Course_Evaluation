@@ -118,6 +118,7 @@ function handleSearch(params) {
   const year = params.year || '';
   const category = params.category || '';
   const subcategory = params.subcategory || '';
+  const isExact = params.isExact === 'true' || params.isExact === true;
   const shouldMerge = params.shouldMerge !== 'false'; // 預設為合併，除非明確指定 'false'
   
   const sheet = getSheet(CONFIG.SHEETS.COURSES);
@@ -145,23 +146,37 @@ function handleSearch(params) {
     // 篩選條件
     let match = true;
     
-    if (keyword && !fuzzyMatch(course.name, keyword)) match = false;
+    if (keyword) {
+      if (isExact) {
+        if (course.name !== keyword) match = false;
+      } else {
+        if (!fuzzyMatch(course.name, keyword)) match = false;
+      }
+    }
+    
     if (teacher && !fuzzyMatch(course.teacher, teacher)) match = false;
     if (year && course.year.toString() !== year) match = false;
-    if (category && !fuzzyMatch(course.category, category)) match = false;
-    if (subcategory && !fuzzyMatch(course.subcategory, subcategory)) match = false;
-    
+    if (category && course.category !== category) match = false;
+    if (subcategory && course.subcategory !== subcategory) match = false;
     if (match) {
       if (shouldMerge) {
         const uniqueKey = `${course.name}|${course.teacher}`;
         if (!resultsMap.has(uniqueKey)) {
+          course.years = [course.year];
+          course.reviewCount = 1;
           resultsMap.set(uniqueKey, course);
+        } else {
+          const existing = resultsMap.get(uniqueKey);
+          if (!existing.years.includes(course.year)) {
+            existing.years.push(course.year);
+          }
+          existing.reviewCount++;
         }
       } else {
         results.push(course);
       }
       
-      // 限制結果數量
+      // 限制結果數量（去重後的課程數）
       const currentCount = shouldMerge ? resultsMap.size : results.length;
       if (currentCount >= CONFIG.SEARCH.MAX_RESULTS) {
         break;
@@ -169,7 +184,16 @@ function handleSearch(params) {
     }
   }
   
-  const finalResults = shouldMerge ? Array.from(resultsMap.values()) : results;
+  const finalResults = shouldMerge ? 
+    Array.from(resultsMap.values()).map(c => {
+      c.year = formatYearRange(c.years);
+      delete c.years;
+      return c;
+    }) : 
+    results;
+
+  // 最終結果整體排序
+  finalResults.sort((a, b) => compareYears(a.year, b.year));
   
   return {
     success: true,
@@ -179,23 +203,94 @@ function handleSearch(params) {
 }
 
 /**
+ * 年份排序專用器：數字大者在前，帶“-”者墊後
+ */
+function compareYears(yearA, yearB) {
+  // 處理區間格式或是單一年份，取最晚的年份作為排序基準
+  const sA = yearA.toString().split('~').pop().trim();
+  const sB = yearB.toString().split('~').pop().trim();
+
+  // 1. 把單獨的 "-" 字串排在最後
+  if (sA === '-' && sB === '-') return 0;
+  if (sA === '-') return 1;
+  if (sB === '-') return -1;
+
+  const parse = (s) => {
+    const isHyphenated = s.includes('-');
+    const parts = s.split('-');
+    const base = parseFloat(parts[0]) || 0;
+    // 如果沒有分學期 (只有 XXX)，子學期權重設為 9 (降序排在 -2 之前)
+    const sub = isHyphenated ? (parseFloat(parts[1]) || 0) : 9;
+    return { base, sub };
+  };
+
+  const a = parse(sA);
+  const b = parse(sB);
+
+  // 2. 比較 XXX 部分 (數字大者在前)
+  if (a.base !== b.base) {
+    return b.base - a.base;
+  }
+
+  // 3. 同樣 XXX 時比學期 (數字大者在前，9 > 2 > 1)
+  return b.sub - a.sub;
+}
+
+/**
+ * 格式化年份區間（例如：111 ~ 114-2）
+ */
+function formatYearRange(years) {
+  if (!years || years.length === 0) return '';
+  if (years.length === 1) return years[0].toString();
+  
+  const parseYear = (y) => {
+    const s = y.toString();
+    const parts = s.split('-');
+    const base = parseFloat(parts[0]);
+    const sub = parts[1] ? parseFloat(parts[1]) / 10 : 0;
+    return base + sub;
+  };
+  
+  const sorted = [...years].sort((a, b) => parseYear(a) - parseYear(b));
+  
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  
+  if (min === max) return min.toString();
+  return `${min} ~ ${max}`;
+}
+
+/**
  * 取得課程映射關係（供前端動態選單使用）
  */
 function handleGetCourseMapping() {
   try {
-    const sheet = getSheet(CONFIG.SHEETS.COURSE_DATABASE);
-    const data = sheet.getDataRange().getValues();
+    const dbSheet = getSheet(CONFIG.SHEETS.COURSE_DATABASE);
+    const dbData = dbSheet.getDataRange().getValues();
     
+    // 預先計算評價資料庫中的每門課筆數
+    const evalSheet = getSheet(CONFIG.SHEETS.COURSES);
+    const evalData = evalSheet.getDataRange().getValues();
+    const countMap = {};
+    for (let j = 1; j < evalData.length; j++) {
+      const cName = evalData[j][2] ? evalData[j][2].toString().trim() : '';
+      if (cName) {
+        countMap[cName] = (countMap[cName] || 0) + 1;
+      }
+    }
+
     // 結構：{ "母分類": { "direct": [], "sub": { "子分類": [] } } }
     const mapping = {};
     
-    for (let i = 1; i < data.length; i++) {
-      const [parent, sub, course] = data[i];
+    for (let i = 1; i < dbData.length; i++) {
+      const [parent, sub, course] = dbData[i];
       if (!parent || !course) continue;
       
       const parentName = parent.toString().trim();
       const subName = sub ? sub.toString().trim() : '';
       const courseName = course.toString().trim();
+      const count = countMap[courseName] || 0;
+      const courseWithCount = { name: courseName, count: count };
       
       if (!mapping[parentName]) {
         mapping[parentName] = { direct: [], sub: {} };
@@ -205,12 +300,13 @@ function handleGetCourseMapping() {
         if (!mapping[parentName].sub[subName]) {
           mapping[parentName].sub[subName] = [];
         }
-        if (!mapping[parentName].sub[subName].includes(courseName)) {
-          mapping[parentName].sub[subName].push(courseName);
+        // 避免重複加入同名課程物件
+        if (!mapping[parentName].sub[subName].some(c => c.name === courseName)) {
+          mapping[parentName].sub[subName].push(courseWithCount);
         }
       } else {
-        if (!mapping[parentName].direct.includes(courseName)) {
-          mapping[parentName].direct.push(courseName);
+        if (!mapping[parentName].direct.some(c => c.name === courseName)) {
+          mapping[parentName].direct.push(courseWithCount);
         }
       }
     }
@@ -322,11 +418,16 @@ function handleGetCourseDetail(params) {
     return { success: false, message: '找不到該課程' };
   }
   
-  // 計算平均值
+  reviews.sort((a, b) => compareYears(a.year, b.year));
+  
+  // 計算平均值與樣本數
   const avgStats = {
     sweetness: average(stats.sweetness),
+    sweetnessCount: stats.sweetness.length,
     coolness: average(stats.coolness),
+    coolnessCount: stats.coolness.length,
     richness: average(stats.richness),
+    richnessCount: stats.richness.length,
     sampleCount: reviews.length
   };
   
@@ -358,34 +459,62 @@ function average(arr) {
  */
 function handleGetHotCourses(params) {
   try {
-    const sheet = getSheet(CONFIG.SHEETS.VIEW_LOGS);
-    const data = sheet.getDataRange().getValues();
+    const logSheet = getSheet(CONFIG.SHEETS.VIEW_LOGS);
+    const logData = logSheet.getDataRange().getValues();
     
-    if (data.length <= 1) {
-      // 沒有瀏覽記錄，回傳空陣列
+    if (logData.length <= 1) {
       return { success: true, data: [] };
     }
     
-    // 統計每個課程的瀏覽次數
+    // 統計瀏覽量
     const viewCounts = {};
-    for (let i = 1; i < data.length; i++) {
-      const [courseName, teacher, , count] = data[i];
+    for (let i = 1; i < logData.length; i++) {
+      const [courseName, teacher, , count] = logData[i];
       const key = `${courseName}|${teacher}`;
       viewCounts[key] = (viewCounts[key] || 0) + (count || 1);
     }
     
-    // 排序並取前 N 名
     const sorted = Object.entries(viewCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, CONFIG.RECOMMENDATION.HOT_COURSES_COUNT);
     
-    // 取得課程詳細資訊
+    // 預先準備評價統計
+    const evalSheet = getSheet(CONFIG.SHEETS.COURSES);
+    const evalData = evalSheet.getDataRange().getValues();
+    const statsMap = {};
+    
+    for (let j = 1; j < evalData.length; j++) {
+      const row = evalData[j];
+      const key = `${row[2]}|${row[3]}`;
+      if (!statsMap[key]) {
+        statsMap[key] = {
+          category: row[0],
+          subcategory: row[1],
+          years: [row[4]],
+          reviewCount: 1
+        };
+      } else {
+        if (!statsMap[key].years.includes(row[4])) {
+          statsMap[key].years.push(row[4]);
+        }
+        statsMap[key].reviewCount++;
+      }
+    }
+
     const courses = [];
     for (const [key, count] of sorted) {
       const [courseName, teacher] = key.split('|');
-      const courseInfo = getCourseInfo(courseName, teacher);
-      if (courseInfo) {
-        courses.push({ ...courseInfo, viewCount: count });
+      const stats = statsMap[key];
+      if (stats) {
+        courses.push({
+          name: courseName,
+          teacher: teacher,
+          category: stats.category,
+          subcategory: stats.subcategory,
+          year: formatYearRange(stats.years),
+          reviewCount: stats.reviewCount,
+          viewCount: count
+        });
       }
     }
     
@@ -399,41 +528,52 @@ function handleGetHotCourses(params) {
  * 取得隨機課程
  */
 function handleGetRandomCourses(params) {
-  const sheet = getSheet(CONFIG.SHEETS.COURSES);
-  const data = sheet.getDataRange().getValues();
-  
-  // 建立課程列表（去重）
-  const courseMap = {};
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const key = `${row[2]}|${row[3]}`; // 課程名稱|教師
-    if (!courseMap[key]) {
-      courseMap[key] = {
-        category: row[0],
-        subcategory: row[1],
-        name: row[2],
-        teacher: row[3]
-      };
+  try {
+    const sheet = getSheet(CONFIG.SHEETS.COURSES);
+    const data = sheet.getDataRange().getValues();
+    
+    const courseMap = {};
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const key = `${row[2]}|${row[3]}`;
+      if (!courseMap[key]) {
+        courseMap[key] = {
+          category: row[0],
+          subcategory: row[1],
+          name: row[2],
+          teacher: row[3],
+          years: [row[4]],
+          reviewCount: 1
+        };
+      } else {
+        if (!courseMap[key].years.includes(row[4])) {
+          courseMap[key].years.push(row[4]);
+        }
+        courseMap[key].reviewCount++;
+      }
     }
+    
+    const courses = Object.values(courseMap);
+    const randomCourses = [];
+    const count = Math.min(CONFIG.RECOMMENDATION.RANDOM_COURSES_COUNT, courses.length);
+    const indices = new Set();
+    
+    while (indices.size < count) {
+      const index = Math.floor(Math.random() * courses.length);
+      indices.add(index);
+    }
+    
+    indices.forEach(index => {
+      const c = courses[index];
+      c.year = formatYearRange(c.years);
+      delete c.years;
+      randomCourses.push(c);
+    });
+    
+    return { success: true, data: randomCourses };
+  } catch (e) {
+    return { success: false, message: '取得隨機課程失敗：' + e.toString() };
   }
-  
-  const courses = Object.values(courseMap);
-  
-  // 隨機選取
-  const randomCourses = [];
-  const count = Math.min(CONFIG.RECOMMENDATION.RANDOM_COURSES_COUNT, courses.length);
-  const indices = new Set();
-  
-  while (indices.size < count) {
-    const index = Math.floor(Math.random() * courses.length);
-    indices.add(index);
-  }
-  
-  indices.forEach(index => {
-    randomCourses.push(courses[index]);
-  });
-  
-  return { success: true, data: randomCourses };
 }
 
 /**

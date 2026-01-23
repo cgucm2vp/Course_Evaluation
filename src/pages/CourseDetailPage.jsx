@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import DataVisualization from '../components/DataVisualization';
 import ReviewCard from '../components/ReviewCard';
@@ -11,6 +11,7 @@ function CourseDetailPage() {
     const [loading, setLoading] = useState(true);
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         loadCourseDetail();
@@ -26,7 +27,19 @@ function CourseDetailPage() {
         );
 
         if (result.success) {
-            setCourseData(result.data);
+            const data = result.data;
+            setCourseData(data);
+
+            // 處理跳轉定位：從 URL 獲取指定年份
+            const queryParams = new URLSearchParams(location.search);
+            const targetYear = queryParams.get('year');
+
+            if (targetYear && data.reviews) {
+                const index = data.reviews.findIndex(r => r.year.toString() === targetYear);
+                if (index !== -1) {
+                    setCurrentReviewIndex(index);
+                }
+            }
         } else {
             alert(result.message || '取得課程詳情失敗');
             navigate('/search');

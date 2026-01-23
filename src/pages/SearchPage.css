@@ -103,6 +103,34 @@
     color: var(--color-text-tertiary);
 }
 
+.label-with-mode {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.label-with-mode .form-label {
+    margin-bottom: 0;
+}
+
+.mode-toggle-btn {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mode-toggle-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;

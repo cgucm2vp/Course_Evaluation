@@ -1,8 +1,15 @@
+import { useState } from 'react';
 import './ReviewCard.css';
 
 function ReviewCard({ review }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const text = review.review || '無評價內容';
+    const isLongText = text.length > 100;
+
+    const displayText = isExpanded ? text : (isLongText ? text.slice(0, 100) + '...' : text);
+
     return (
-        <div className="review-card">
+        <div className={`review-card ${isExpanded ? 'expanded' : ''}`}>
             <div className="review-header">
                 <div className="review-meta">
                     <span className="review-year">📅 {review.year}</span>
@@ -16,7 +23,16 @@ function ReviewCard({ review }) {
 
             <div className="review-content">
                 <h4 className="review-title">修課心得與建議</h4>
-                <p className="review-text">{review.review || '無評價內容'}</p>
+                <p className="review-text">{displayText}</p>
+
+                {isLongText && (
+                    <button
+                        className="read-more-btn"
+                        onClick={() => setIsExpanded(!isExpanded)}
+                    >
+                        {isExpanded ? '收起內容 ▲' : '閱讀更多 ▼'}
+                    </button>
+                )}
             </div>
         </div>
     );
