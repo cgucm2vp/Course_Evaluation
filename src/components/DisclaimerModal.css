@@ -1,0 +1,81 @@
+.disclaimer-content {
+    text-align: center;
+    max-width: 400px;
+    border: 2px solid var(--color-error);
+    /* 強調警告性質 */
+    animation: shake 0.5s ease-out;
+}
+
+.disclaimer-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.warning-icon {
+    font-size: 3rem;
+    animation: pulse 2s infinite;
+}
+
+.disclaimer-title {
+    color: var(--color-error);
+    margin-bottom: 0;
+    border-bottom: none;
+    font-size: 1.5rem;
+}
+
+.disclaimer-message {
+    font-size: 1.1rem;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.8;
+}
+
+.highlight-text {
+    font-weight: 700;
+    color: var(--color-error);
+    margin-top: var(--spacing-sm);
+}
+
+.confirm-btn {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-size: 1.1rem;
+    background: var(--color-error);
+    /* 使用紅色按鈕強調 */
+    border: none;
+    color: white;
+    transition: all var(--transition-base);
+}
+
+.confirm-btn:hover {
+    background: hsl(0, 60%, 30%);
+    /* 深紅色 */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-5px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(5px);
+    }
+}

@@ -18,6 +18,9 @@ const CONFIG = {
     VIEW_LOGS: '瀏覽記錄'  // 用於追蹤熱門課程，如果不存在會自動建立
   },
   
+  // 管理員郵件（用於接收異常回報通知）
+  ADMIN_EMAIL: '請在此輸入您的電子郵件',
+  
   // CORS 設定（允許的前端網域）
   ALLOWED_ORIGINS: [
     '*'  // 開發時允許所有來源，正式環境建議改為你的 GitHub Pages 網址
@@ -55,11 +58,15 @@ function getSheet(sheetName) {
   const ss = getSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
   
-  // 如果 Sheet 不存在，自動建立（僅限瀏覽記錄）
-  if (!sheet && sheetName === CONFIG.SHEETS.VIEW_LOGS) {
-    sheet = ss.insertSheet(sheetName);
-    // 建立標題列
-    sheet.appendRow(['課程名稱', '授課教師', '瀏覽時間', '瀏覽次數']);
+  // 如果 Sheet 不存在，自動建立（僅限瀏覽記錄與異常回報）
+  if (!sheet) {
+    if (sheetName === CONFIG.SHEETS.VIEW_LOGS) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(['課程名稱', '授課教師', '瀏覽時間', '瀏覽次數']);
+    } else if (sheetName === 'SystemReports') {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(['Timestamp', 'Reporter', 'Content', 'DeviceInfo', 'Resolved']);
+    }
   }
   
   if (!sheet) {

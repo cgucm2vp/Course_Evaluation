@@ -47,6 +47,9 @@ function handleRequest(e) {
       case 'recordView':
         result = handleRecordView(params);
         break;
+      case 'reportIssue':
+        result = handleReportIssue(params);
+        break;
       case 'getCourseMapping':
         result = handleGetCourseMapping();
         break;
@@ -635,4 +638,76 @@ function getCourseInfo(courseName, teacher) {
   }
   
   return null;
+}
+
+/**
+ * 處理異常回報
+ */
+function handleReportIssue(params) {
+  const reporter = params.reporter || 'Anonymous';
+  const content = params.content || '';
+  const deviceInfo = params.deviceInfo || '';
+  
+  if (!content) {
+    return { success: false, message: '請填寫問題描述' };
+  }
+  
+  try {
+    // 取得 SystemReports 工作表（已在 getSheet 中實作自動建立與格式化）
+    const sheet = getSheet('SystemReports');
+
+    // 寫入資料（Resolved 欄位會自動對應到核取方塊）
+    sheet.appendRow([new Date(), reporter, content, deviceInfo, false]);
+    
+    // 為剛新增的那一列插入核取方塊
+    const lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow, 5).insertCheckboxes();
+
+    // 嘗試寄信通知（如果失敗不影響回報功能）
+    try {
+      const adminEmail = CONFIG.ADMIN_EMAIL;
+      if (adminEmail && adminEmail !== '請在此輸入您的電子郵件') {
+        const subject = `[課程評鑑系統] 收到新的異常回報`;
+        const emailBody = `收到新的異常回報：
+
+時間：${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}
+回報者：${reporter}
+裝置資訊：${deviceInfo}
+
+問題描述：
+${content}
+
+請至 Google Sheet 的 SystemReports 工作表確認並處理。`;
+        
+        MailApp.sendEmail(adminEmail, subject, emailBody);
+      }
+    } catch (emailError) {
+      Logger.log('Email notification failed: ' + emailError.toString());
+    }
+
+    return { success: true, message: '回報成功' };
+  } catch (e) {
+    return { success: false, message: '回報失敗：' + e.toString() };
+  }
+}
+
+/**
+ * 強制授權函數（無錯誤攔截）
+ * 
+ * 💡 為什麼要執行這個？
+ * 因為之前的版本有錯誤攔截，導致 Google 沒辦法正確彈出授權視窗。
+ * 這個函數「故意」不處理錯誤，讓 Google 的授權系統能正確抓到並要求您點擊「核准」。
+ */
+function authorizeEmailPermissions() {
+  const adminEmail = CONFIG.ADMIN_EMAIL;
+  
+  if (!adminEmail || adminEmail === '請在此輸入您的電子郵件') {
+    throw new Error('❌ 請先在 Config.gs 中設定您的電子郵件！');
+  }
+
+  // 直接發送郵件，這會強迫 Google 彈出「需要授權」的藍色視窗
+  MailApp.sendEmail(adminEmail, '測試郵件 - 授權成功', '恭喜！您的系統已經可以正常發送異常回報通知信。');
+  
+  Logger.log('✅ 如果您看到這行，代表授權成功並且信件已寄出！');
+  return '授權成功！';
 }

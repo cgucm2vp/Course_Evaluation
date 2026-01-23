@@ -132,7 +132,31 @@ const api = {
             console.error('Get course mapping error:', error);
             return { success: false, message: '取得選單失敗' };
         }
-    }
-};
+    },
+    /**
+     * 異常回報
+     */
+    reportIssue: async (content) => {
+        try {
+            // 取得當前登入使用者資訊
+            const userStr = localStorage.getItem(config.STORAGE_KEYS.USER);
+            const user = userStr ? JSON.parse(userStr) : null;
+            const reporter = user ? (user.name || user.username) : 'Anonymous';
+            const deviceInfo = navigator.userAgent;
 
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'reportIssue',
+                    reporter,
+                    content,
+                    deviceInfo
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Report issue error:', error);
+            return { success: false, message: '回報失敗，請稍後再試' };
+        }
+    },
+};
 export default api;

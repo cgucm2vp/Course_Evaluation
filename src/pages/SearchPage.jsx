@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import config from '../config';
 import CourseCard from '../components/CourseCard';
+import MetricsGuideModal from '../components/MetricsGuideModal';
+import DisclaimerModal from '../components/DisclaimerModal';
+import Footer from '../components/Footer';
 import './SearchPage.css';
 
 function SearchPage() {
@@ -20,6 +23,8 @@ function SearchPage() {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
     const [useDropdown, setUseDropdown] = useState(true);
+    const [showGuideModal, setShowGuideModal] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,10 +36,21 @@ function SearchPage() {
         }
         setUser(JSON.parse(userData));
 
+        // 檢查是否已確認過保密聲明
+        const hasConfirmed = sessionStorage.getItem('hasConfirmedDisclaimer');
+        if (!hasConfirmed) {
+            setShowDisclaimer(true);
+        }
+
         // 載入熱門課程與課程選單
         loadHotCourses();
         loadCourseMapping();
     }, [navigate]);
+
+    const handleDisclaimerConfirm = () => {
+        sessionStorage.setItem('hasConfirmedDisclaimer', 'true');
+        setShowDisclaimer(false);
+    };
 
     const loadHotCourses = async () => {
         const result = await api.getHotCourses();
@@ -103,6 +119,7 @@ function SearchPage() {
 
     const handleLogout = () => {
         localStorage.removeItem(config.STORAGE_KEYS.USER);
+        sessionStorage.removeItem('hasConfirmedDisclaimer');
         navigate('/');
     };
 
@@ -275,6 +292,17 @@ function SearchPage() {
                         </form>
                     </div>
 
+                    {/* 評分說明按鈕 */}
+                    <div className="metrics-guide-container fade-in">
+                        <button
+                            className="guide-btn"
+                            onClick={() => setShowGuideModal(true)}
+                            aria-label="查看評鑑標準說明"
+                        >
+                            ℹ️ 評鑑標準與指標說明
+                        </button>
+                    </div>
+
                     {/* 熱門課程推薦 */}
                     {!searched && hotCourses.length > 0 && (
                         <div className="hot-section fade-in">
@@ -318,6 +346,18 @@ function SearchPage() {
                     )}
                 </div>
             </main>
+
+            <MetricsGuideModal
+                isOpen={showGuideModal}
+                onClose={() => setShowGuideModal(false)}
+            />
+
+            <DisclaimerModal
+                isOpen={showDisclaimer}
+                onConfirm={handleDisclaimerConfirm}
+            />
+
+            <Footer />
         </div>
     );
 }

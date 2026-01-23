@@ -1,7 +1,7 @@
 {
   "name": "course-evaluation-system",
   "private": true,
-  "version": "20260123.1v",
+  "version": "20260124.1v",
   "type": "module",
   "scripts": {
     "dev": "vite",

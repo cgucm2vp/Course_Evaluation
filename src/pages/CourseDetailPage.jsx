@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import DataVisualization from '../components/DataVisualization';
 import ReviewCard from '../components/ReviewCard';
+import MetricsGuideModal from '../components/MetricsGuideModal';
+import Footer from '../components/Footer';
 import './CourseDetailPage.css';
 
 function CourseDetailPage() {
@@ -10,6 +12,7 @@ function CourseDetailPage() {
     const [courseData, setCourseData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+    const [showGuideModal, setShowGuideModal] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -98,9 +101,19 @@ function CourseDetailPage() {
                 <div className="container">
                     {/* 數據可視化區塊 */}
                     <section className="stats-section fade-in">
-                        <h2 className="section-title">📈 數據分析</h2>
+                        <div className="section-header-with-action">
+                            <h2 className="section-title">📈 數據分析</h2>
+                            <button
+                                className="info-btn"
+                                onClick={() => setShowGuideModal(true)}
+                                aria-label="查看評鑑標準說明"
+                            >
+                                ℹ️ 評鑑標準說明
+                            </button>
+                        </div>
                         <DataVisualization stats={courseData.stats} />
                     </section>
+
 
                     {/* 評價卡片區塊 */}
                     <section className="reviews-section fade-in">
@@ -147,6 +160,13 @@ function CourseDetailPage() {
                     </section>
                 </div>
             </main>
+
+            <MetricsGuideModal
+                isOpen={showGuideModal}
+                onClose={() => setShowGuideModal(false)}
+            />
+
+            <Footer />
         </div>
     );
 }

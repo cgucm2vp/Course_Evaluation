@@ -48,6 +48,39 @@
     margin-bottom: var(--spacing-2xl);
 }
 
+.metrics-guide-container {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.guide-btn {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px dashed var(--color-primary);
+    /* 使用虛線邊框增加區隔感與指引感 */
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    background-image: linear-gradient(to right, var(--color-surface), var(--color-bg) 50%, var(--color-surface));
+    background-size: 200% 100%;
+}
+
+.guide-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background-position: 100% 0;
+    border-style: solid;
+    /* hover 時變實線 */
+}
+
 .search-form {
     display: flex;
     flex-direction: column;

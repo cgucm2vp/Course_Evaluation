@@ -1,0 +1,38 @@
+.app-footer {
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border-light);
+    padding: var(--spacing-md) 0;
+    margin-top: auto;
+    /* Push to bottom if inside flex container */
+    width: 100%;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-lg);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.copyright {
+    margin: 0;
+}
+
+.report-link-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-tertiary);
+    /* Subtler color */
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 0;
+    transition: color var(--transition-fast);
+}
+
+.report-link-btn:hover {
+    color: var(--color-error);
+    /* Highlight on hover */
+}

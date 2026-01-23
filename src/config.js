@@ -6,7 +6,7 @@
 const config = {
     // Google Apps Script Web App URL
     // 請將此 URL 替換為你部署的 Google Apps Script Web App URL
-    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbzi3lP1ECkwEpqM3nHRoidQO4Wdd3u3Cb9P0ko7NWCiCgWVN37Z593Z2diMYt7nUz0Xsg/exec',
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxNC8HguH0RymRYwZ1j2I41lrACm0xTTkDDMC9cemd_66iTv6GeN0r4kCb5SBqGm3IEyg/exec',
 
     // 應用程式設定
     APP_NAME: '課程評鑑查詢系統',
