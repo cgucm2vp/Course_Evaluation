@@ -257,6 +257,15 @@ function SubmitPage() {
         else navigate('/');
     };
 
+    const handleTopBack = () => {
+        // 如果有歷史紀錄且不是直接輸入網址進入的，則後退；否則回到應回的首頁
+        if (window.history.length > 1 && location.key !== 'default') {
+            navigate(-1);
+        } else {
+            handleReturn();
+        }
+    };
+
     const handleReturnToCourse = () => {
         if (location.state?.courseName && location.state?.teacher) {
             const encodedName = encodeURIComponent(location.state.courseName);
@@ -298,7 +307,7 @@ function SubmitPage() {
     return (
         <div className="submit-page">
             <header className="submit-header">
-                <button className="submit-back-btn" onClick={() => navigate(-1)}>← 返回上一頁</button>
+                <button className="submit-back-btn" onClick={handleTopBack}>← 返回上一頁</button>
                 <h1>課程評鑑撰寫</h1>
                 <p className="subtitle">傳承修課經驗，成為彼此學習路上的引導者</p>
             </header>

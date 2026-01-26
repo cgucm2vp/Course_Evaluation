@@ -1,134 +1,57 @@
-# Google Apps Script 後端設定說明
+# ⚙️ 後端系統與自動化維護指南
 
-## 概述
-這個資料夾包含課程評鑑系統的後端程式碼，使用 Google Apps Script 實作。
+本目錄包含系統的核心 API 與所有輔助資料管理的自動化腳本。本專案採用 **Google Apps Script (GAS)** 提供 RESTful 服務，並搭配 **Python** 進行繁瑣的資料建置與更新工作。
 
-## 檔案說明
-- `Code.gs` - 主要程式碼，包含所有 API 端點
-- `Config.gs` - 配置檔案，包含 Google Sheets ID 等設定
+---
 
-## 設定步驟
+## 📂 檔案結構說明
 
-### 1. 建立 Google Apps Script 專案
-1. 前往 [Google Apps Script](https://script.google.com/)
-2. 點擊「新專案」
-3. 將專案命名為「課程評鑑系統API」
+### 1. 核心 API (GAS)
+- **`Code.gs`**：API 的大腦。負責處理前端的搜尋、登入、心得提交、瀏覽記錄計算等請求。
+- **`Config.gs`**：私密配置區。定義了 Google Sheet ID、搜尋靈敏度與 API 金鑰等關鍵參數。
 
-### 2. 複製程式碼
-1. **建立 Config.gs**：
-   - 在 Apps Script 編輯器中，點擊「檔案」>「新增」>「指令碼」
-   - 將新檔案命名為 `Config`
-   - 將本資料夾中的 `Config.gs` 內容完整複製到這個檔案中
+### 2. 資料庫管理工具 (GAS)
+- **`gas/database_manager.gs`**：**「動態資料庫管理員」**。
+    - 監聽 Google Sheet 的編輯事件 (`onEdit`)。
+    - **自動連動**：在 Excel 中選擇母分類後，自動更新子分類與課程清單的下拉選單。
+    - **審核流轉**：在「課程評鑑回覆」勾選後，自動將內容轉移至正確的資料庫分頁並給予顏色標記。
 
-2. **編輯 Code.gs**：
-   - 刪除預設 `Code.gs` 的內容
-   - 將本資料夾中的 `Code.gs` 內容完整複製進去
+### 3. 自動化維護腳本 (Python)
+- **`scripts/data_crawler.py`**：**「資料採集員」**。
+    - 對接校務系統 API，自動抓取當學期最新的課程代碼、名稱與教師。
+    - 產出 `課程資料.xlsx`，供維護者直接匯入 Google Sheets。
+- **`scripts/sheets_builder.py`**：**「結構建置員」**。
+    - 一鍵生成符合系統格式規範的 Excel 模板。
+    - 當需要重建資料庫或更換試算表時，可確保所有分頁與表頭完全正確。
 
-**重要**：這兩個檔案必須分開，不要合併在一起！
+---
 
-### 3. 設定 Google Sheets ID
-1. 開啟你的 Google Sheets
-2. 從網址列複製 Spreadsheet ID
-   - 網址格式：`https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit`
-3. 在 `Config.gs` 中，將 `SPREADSHEET_ID` 替換成你的 ID
+## 🛠️ 維護操作流程
 
-### 4. 確認 Google Sheets 結構
-確保你的 Google Sheets 包含以下分頁：
+### 情境 A：每學期初更新課程清單
+1. 執行 `python scripts/data_crawler.py`。
+2. 輸入目標學期代碼。
+3. 將產生的 `課程資料.xlsx` 內容複製到 Google Sheets 的 **「課程資料庫」** 分頁。
 
-#### 「帳號密碼」分頁
-| 帳號 | 密碼 | 姓名 |
-|------|------|------|
-| user1 | pass1 | 張三 |
+### 情境 B：審核學弟妹提交的心得
+1. 開啟 Google Sheets 轉至 **「課程評鑑回覆」**。
+2. 檢查是否有謾罵或不實內容。
+3. 勾選第一欄的 **「核准並移動」**。
+4. **結果**：GAS 會自動將心得移至 **「評鑑資料庫」**，該項目背景會變為綠色，並即時反映在前端頁面上。
 
-#### 「評鑑資料庫」分頁
-| 課程母分類 | 課程子分類 | 課程名稱 | 授課教師 | 修課時間 | 甜度 | 涼度 | 有料程度 | 評價與修課指引 |
-|-----------|-----------|---------|---------|---------|------|------|----------|---------------|
-| 通識 | 人文 | 哲學概論 | 王老師 | 2023 | 8 | 7 | 9 | 很棒的課程... |
+---
 
-#### 「瀏覽記錄」分頁（選填，系統會自動建立）
-此分頁用於追蹤熱門課程，系統會自動建立和管理。
+## 🧪 開發與測試
+- **API 測試**：可直接在瀏覽器輸入 `WEB_APP_URL?action=getHotCourses` 確認回傳是否為 JSON。
+- **資料連動測試**：在試算表中隨意修改資料，確認 UI 渲染是否即時更新。
 
-### 5. 部署為 Web App
-1. 在 Apps Script 編輯器中，點擊右上角「部署」>「新增部署作業」
-2. 選擇類型：「網頁應用程式」
-3. 設定：
-   - **說明**：課程評鑑系統 API v1
-   - **執行身分**：我
-   - **具有存取權的使用者**：任何人（重要！前端才能呼叫）
-4. 點擊「部署」
-5. 複製「網頁應用程式 URL」（類似 `https://script.google.com/macros/s/.../exec`）
-6. 將此 URL 填入前端的 `src/config.js` 中
+---
 
-### 6. 測試 API
-使用瀏覽器或 Postman 測試 API：
+## ⚠️ 重要規範
+- **請勿合併檔案**：在 GAS 編輯器中請保持 `Code.gs` 與 `Config.gs` 獨立。
+- **權限設定**：部署 Web App 時，請務必設定「執行身分：我」、「存取權限：任何人」。
+- **備份建議**：雖然有自動化工具，建議每月手動下載一次 Google Sheet 作為冷備份。
 
-**測試登入：**
-```
-https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?action=login&username=user1&password=pass1
-```
+---
 
-**測試搜尋：**
-```
-https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?action=search&keyword=哲學
-```
-
-## API 端點說明
-
-### 1. 登入
-- **action**: `login`
-- **參數**: `username`, `password`
-- **回傳**: `{ success: true/false, data: { username, name } }`
-
-### 2. 搜尋課程
-- **action**: `search`
-- **參數**: `keyword`, `teacher`, `year`, `category`, `subcategory`（皆為選填）
-- **回傳**: `{ success: true, data: [...courses], count: number }`
-
-### 3. 取得課程詳情
-- **action**: `getCourseDetail`
-- **參數**: `courseName`, `teacher`
-- **回傳**: `{ success: true, data: { course, stats, reviews } }`
-
-### 4. 取得熱門課程
-- **action**: `getHotCourses`
-- **回傳**: `{ success: true, data: [...courses] }`
-
-### 5. 取得隨機課程
-- **action**: `getRandomCourses`
-- **回傳**: `{ success: true, data: [...courses] }`
-
-### 6. 記錄瀏覽
-- **action**: `recordView`
-- **參數**: `courseName`, `teacher`
-- **回傳**: `{ success: true }`
-
-## 維護說明
-
-### 更換 Google Sheets
-只需修改 `Config.gs` 中的 `SPREADSHEET_ID`，然後重新部署即可。
-
-### 調整搜尋參數
-在 `Config.gs` 中可以調整：
-- `MIN_SIMILARITY` - 模糊搜尋的最低相似度（預設 0.4）
-- `MAX_RESULTS` - 最多回傳幾筆結果（預設 50）
-
-### 調整推薦數量
-在 `Config.gs` 中可以調整：
-- `HOT_COURSES_COUNT` - 熱門課程推薦數量（預設 5）
-- `RANDOM_COURSES_COUNT` - 隨機推薦數量（預設 3）
-
-## 常見問題
-
-### Q: 前端無法呼叫 API
-A: 確認部署時「具有存取權的使用者」設為「任何人」
-
-### Q: 找不到 Google Sheets
-A: 檢查 `SPREADSHEET_ID` 是否正確，以及 Apps Script 執行帳號是否有存取權限
-
-### Q: 搜尋結果不準確
-A: 可以調整 `Config.gs` 中的 `MIN_SIMILARITY` 值（0-1 之間）
-
-## 安全性提醒
-- 目前密碼是明文儲存在 Google Sheets 中
-- 建議僅用於內部或小規模使用
-- 如需更高安全性，建議實作密碼雜湊加密
+© 2026 長庚中醫系學會維護小組

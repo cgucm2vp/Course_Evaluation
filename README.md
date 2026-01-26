@@ -1,192 +1,79 @@
-# 課程評鑑查詢系統
+# 📚 課程指引與評鑑查詢系統 (Course Evaluation System)
+**版本：20260126.3v**
 
-一個使用 React + Google Apps Script + Google Sheets 建立的課程評鑑查詢系統，提供直覺的介面讓使用者搜尋和瀏覽課程評價。
-
-## ✨ 功能特色
-
-- 🔐 **登入系統** - 安全的帳號密碼驗證
-- 🔍 **智慧搜尋** - 支援模糊搜尋，多條件篩選（課程名稱、教師、年分、分類）
-- 📊 **數據可視化** - 長條圖和雷達圖展示課程評分（甜度、涼度、有料程度）
-- 💬 **評價展示** - 卡片式滑動瀏覽修課心得
-- 🔥 **熱門推薦** - 基於瀏覽次數的熱門課程推薦
-- 🎲 **隨機推薦** - 探索隨機課程
-- 📱 **響應式設計** - 支援桌面和行動裝置
-- 🎨 **現代化 UI** - 漸層、動畫、深色模式支援
-
-## 🏗️ 技術架構
-
-### 前端
-- **框架**: React 18 + Vite
-- **路由**: React Router v6
-- **圖表**: Recharts
-- **HTTP 客戶端**: Axios
-- **樣式**: Vanilla CSS（含 CSS 變數和現代化設計系統）
-
-### 後端
-- **平台**: Google Apps Script
-- **資料庫**: Google Sheets
-- **API**: RESTful API
-
-### 部署
-- **前端**: GitHub Pages
-- **CI/CD**: GitHub Actions
-
-## 📋 環境需求
-
-- Node.js 18+ 和 npm
-- Google 帳號（用於 Google Sheets 和 Apps Script）
-- Git
-
-## 🚀 快速開始
-
-### 1. 設定 Google Sheets
-
-建立一個 Google Sheets，包含以下分頁：
-
-#### 「帳號密碼」分頁
-| 帳號 | 密碼 | 姓名 |
-|------|------|------|
-| user1 | pass1 | 張三 |
-
-#### 「評鑑資料庫」分頁
-| 課程母分類 | 課程子分類 | 課程名稱 | 授課教師 | 修課時間 | 甜度 | 涼度 | 有料程度 | 評價與修課指引 |
-|-----------|-----------|---------|---------|---------|------|------|----------|---------------|
-| 通識 | 人文 | 哲學概論 | 王老師 | 2023 | 8 | 7 | 9 | 很棒的課程... |
-
-**注意**：「瀏覽記錄」分頁會自動建立，無需手動新增。
-
-### 2. 部署 Google Apps Script
-
-1. 前往 [Google Apps Script](https://script.google.com/)
-2. 建立新專案
-3. 複製 `backend/Config.gs` 和 `backend/Code.gs` 的內容到專案中
-4. 在 `Config.gs` 中設定你的 Google Sheets ID
-5. 部署為 Web App（執行身分：我，存取權限：任何人）
-6. 複製部署的 Web App URL
-
-詳細步驟請參考 [`backend/README.md`](backend/README.md)
-
-### 3. 設定前端
-
-1. Clone 此專案：
-```bash
-git clone <your-repo-url>
-cd Course_Evaluation
-```
-
-2. 安裝依賴：
-```bash
-npm install
-```
-
-3. 設定 API URL：
-編輯 `src/config.js`，將 `API_BASE_URL` 替換為你的 Google Apps Script Web App URL
-
-4. 設定 GitHub Pages 路徑：
-編輯 `vite.config.js`，將 `base` 設定為你的 GitHub repo 名稱（例如：`/Course_Evaluation/`）
-
-### 4. 本地開發
-
-```bash
-npm run dev
-```
-
-開啟瀏覽器訪問 `http://localhost:5173`
-
-### 5. 部署到 GitHub Pages
-
-1. 推送程式碼到 GitHub：
-```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
-
-2. 在 GitHub repo 設定中：
-   - 前往 Settings > Pages
-   - Source 選擇 "GitHub Actions"
-
-3. GitHub Actions 會自動建置和部署
-
-4. 訪問 `https://<your-username>.github.io/Course_Evaluation/`
-
-## 📁 專案結構
-
-```
-Course_Evaluation/
-├── backend/                  # Google Apps Script 後端
-│   ├── Code.gs              # 主要 API 程式碼
-│   ├── Config.gs            # 配置檔案
-│   └── README.md            # 後端設定說明
-├── src/                     # React 前端原始碼
-│   ├── components/          # React 組件
-│   │   ├── CourseCard.jsx   # 課程卡片
-│   │   ├── DataVisualization.jsx  # 數據可視化
-│   │   └── ReviewCard.jsx   # 評價卡片
-│   ├── pages/               # 頁面組件
-│   │   ├── LoginPage.jsx    # 登入頁面
-│   │   ├── SearchPage.jsx   # 搜尋頁面
-│   │   └── CourseDetailPage.jsx  # 課程詳情頁面
-│   ├── services/            # 服務層
-│   │   └── api.js           # API 呼叫封裝
-│   ├── config.js            # 前端配置
-│   ├── App.jsx              # 主應用程式
-│   ├── main.jsx             # 應用程式入口
-│   └── index.css            # 全域樣式
-├── .github/workflows/       # GitHub Actions
-│   └── deploy.yml           # 自動部署設定
-├── package.json             # 專案依賴
-├── vite.config.js           # Vite 配置
-└── README.md                # 本檔案
-```
-
-## 🔧 維護指南
-
-### 更換 Google Sheets
-
-1. 編輯 `backend/Config.gs` 中的 `SPREADSHEET_ID`
-2. 重新部署 Google Apps Script
-
-詳細說明請參考 [`MAINTENANCE.md`](MAINTENANCE.md)
-
-### 調整搜尋參數
-
-在 `backend/Config.gs` 中可調整：
-- `MIN_SIMILARITY` - 模糊搜尋相似度閾值（0-1）
-- `MAX_RESULTS` - 最多回傳結果數量
-
-### 調整推薦數量
-
-在 `backend/Config.gs` 中可調整：
-- `HOT_COURSES_COUNT` - 熱門課程推薦數量
-- `RANDOM_COURSES_COUNT` - 隨機推薦數量
-
-## 🎨 自訂樣式
-
-全域樣式定義在 `src/index.css`，使用 CSS 變數系統，可輕鬆調整：
-- 色彩主題
-- 間距系統
-- 圓角大小
-- 動畫速度
-
-## 📝 API 文件
-
-詳細 API 說明請參考 [`backend/README.md`](backend/README.md)
-
-## ⚠️ 注意事項
-
-- 密碼目前以明文儲存在 Google Sheets 中，建議僅用於內部或小規模使用
-- Google Apps Script 有每日配額限制，請參考 [Google Apps Script Quotas](https://developers.google.com/apps-script/guides/services/quotas)
-- 建議定期備份 Google Sheets 資料
-
-## 📄 授權
-
-MIT License
-
-## 🤝 貢獻
-
-歡迎提交 Issue 和 Pull Request！
+本系統是專為長庚中醫系打造的課程經驗傳承平台，採用 React 前端、Google Apps Script (GAS) 後端與 Google Sheets 資料庫的輕量化架構。
 
 ---
 
-© 2026 課程評鑑查詢系統
+## ✨ 核心功能
+- � **穿透式存取**：支援免登入直接撰寫評鑑，極大化經驗蒐集效率。
+- 🔍 **智慧課程檢索**：支援模糊搜尋、類別篩選與熱門課程推薦。
+- 📊 **多維度視覺化**：透過甜度、涼度、紮實度雷達圖，一眼看穿課程本質。
+- ✍️ **動態評鑑流程**：智慧連動課程與教師資料，提供防呆檢查與撰寫指引。
+- �️ **管理審核機制**：後端具備自動驗證與一鍵發佈功能，確保內容品質。
+
+---
+
+## 🏗️ 技術架構與模組
+
+### 前端 (Frontend)
+- **框架**：React 18 + Vite
+- **圖表**：Recharts (SVG 數據可视化)
+- **部署**：GitHub Pages + Actions 自動自動化部署
+
+### 後端 (Backend / Database)
+- **核心**：Google Apps Script (RESTful API)
+- **儲存**：Google Sheets (關聯式資料管理)
+- **自動化工具**：
+    - **Python Crawler**：自動抓取校務系統最新課程資訊。
+    - **Python Builder**：自動建置符合系統規範的資料庫結構。
+    - **GAS Manager**：處理即時資料驗證、顏色標記與審核轉移邏輯。
+
+---
+
+## 📁 專案目錄結構
+
+```text
+Course_Evaluation/
+├── src/                    # 前端原始碼
+│   ├── components/         # 共用組件 (成功彈窗、撰寫指引等)
+│   ├── pages/              # 頁面邏輯 (搜尋、詳情、提交評鑑)
+│   └── services/           # API 對接服務
+├── backend/                # 後端資產
+│   ├── Code.gs             # API 主體程式碼
+│   ├── Config.gs           # API 私密配置
+│   ├── gas/                # 資料庫管理工具 (GAS 版)
+│   │   └── database_manager.gs
+│   └── scripts/            # 自動化維護腳本 (Python 版)
+│       ├── data_crawler.py   # 自動抓取課程資料
+│       └── sheets_builder.py # 自動建立試算表模板
+├── public/                 # 靜態資源
+└── USER_MANUAL.md          # 使用者操作手冊 (可編輯)
+```
+
+---
+
+## �快速啟動與維護流程
+
+### 1. 資料初始化
+維護者應優先使用 `backend/scripts/sheets_builder.py` 建立本地 Excel 模板，並匯入至 Google Sheets 中。
+
+### 2. 資料更新
+每學期初，執行 `backend/scripts/data_crawler.py` 抓取最新學期的課程清單，並更新至「課程資料庫」分頁。
+
+### 3. API 部署
+將 `backend/Code.gs` 與 `Config.gs` 貼入 Google Apps Script 專案並「部署為網頁應用程式」，將產生的 URL 更新至 `src/config.js`。
+
+### 4. 內容審核
+進入 Google Sheet 的「課程評鑑回覆」分頁，確認心得內容後勾選「核准並移動」，GAS 將自動完成資料轉移。
+
+---
+
+## �️ 維護指南與開發建議
+詳情請參閱各目錄下的 README：
+- [後端與自動化腳本說明](./backend/README.md)
+- [使用者詳細操作指南](./USER_MANUAL.md)
+
+---
+
+© 2026 長庚中醫系學會所有
