@@ -292,6 +292,19 @@ function SearchPage() {
                         </form>
                     </div>
 
+                    {/* 評鑑引導 CTA */}
+                    <div className="search-eval-cta fade-in">
+                        <div className="cta-content">
+                            <span className="cta-text">📢 發現沒被記錄的課程？或是想更新心得？</span>
+                            <button
+                                onClick={() => navigate('/submit')}
+                                className="btn btn-primary cta-btn"
+                            >
+                                ✍️ 分享我的評鑑
+                            </button>
+                        </div>
+                    </div>
+
                     {/* 評分說明按鈕 */}
                     <div className="metrics-guide-container fade-in">
                         <button

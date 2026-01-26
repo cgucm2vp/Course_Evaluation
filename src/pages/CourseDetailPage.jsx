@@ -82,7 +82,7 @@ function CourseDetailPage() {
         <div className="course-detail-page">
             <header className="detail-header">
                 <div className="container">
-                    <button onClick={() => navigate('/search')} className="btn btn-ghost back-btn">
+                    <button onClick={() => navigate('/search')} className="btn btn-ghost detail-back-btn">
                         ← 返回搜尋
                     </button>
 
@@ -156,6 +156,24 @@ function CourseDetailPage() {
                                     aria-label={`查看第 ${index + 1} 則評價`}
                                 />
                             ))}
+                        </div>
+
+                        {/* 評價引導按鈕 */}
+                        <div className="detail-eval-cta-container">
+                            <button
+                                className="btn btn-primary eval-cta-btn"
+                                onClick={() => navigate('/submit', {
+                                    state: {
+                                        courseName: courseData.course.name,
+                                        teacher: courseData.course.teacher,
+                                        category: courseData.course.category,
+                                        subcategory: courseData.course.subcategory
+                                    }
+                                })}
+                            >
+                                ✍️ 我也想為此門課程評鑑
+                            </button>
+                            <p className="eval-cta-hint">分享你的修課心得，幫助更多人！</p>
                         </div>
                     </section>
                 </div>

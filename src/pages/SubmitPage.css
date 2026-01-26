@@ -1,0 +1,537 @@
+.submit-page {
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    padding: 6rem 1rem 8rem;
+    /* 增加頂部間距確保按鈕不被遮擋，增加底部緩衝 */
+    color: var(--color-text);
+}
+
+.submit-header {
+    max-width: 800px;
+    margin: 0 auto 2.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.submit-back-btn {
+    position: absolute;
+    left: 0;
+    top: -2.5rem;
+    /* 增加與標題的垂直差距 */
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.2s;
+    font-size: 0.95rem;
+}
+
+.submit-back-btn:hover {
+    transform: translateX(-4px);
+}
+
+.submit-header h1 {
+    font-size: 2.2rem;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-style: italic;
+    color: var(--color-text-secondary);
+}
+
+.submit-container {
+    max-width: 801px;
+    /* 微調以對齊邊緣 */
+    margin: 0 auto 5rem;
+    /* 增加底部間距以利 Footer 顯示 */
+}
+
+.submit-form {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: var(--shadow-md);
+}
+
+.form-section {
+    margin-bottom: 3.5rem;
+}
+
+.form-section h3 {
+    border-left: 5px solid var(--color-primary);
+    padding-left: 1.2rem;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.required {
+    color: var(--color-error);
+    margin-left: 4px;
+}
+
+/* Error States */
+.error-ring {
+    border-color: var(--color-error) !important;
+    background-color: #fffafa !important;
+}
+
+.error-text {
+    color: var(--color-error);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.metrics-error-border {
+    border: 2px solid var(--color-error-light);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.error-center {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+input,
+select,
+textarea {
+    padding: 0.8rem 1.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: #fff;
+    transition: all var(--transition-base);
+    min-height: 48px;
+    /* 統一最小高度 */
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Conflict Dialog (課程相符建議) */
+.conflict-dialog {
+    background: #fff9f0;
+    border: 1px solid #ffeeba;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: -1rem 0 2.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.border-accent {
+    border-left: 6px solid var(--color-accent);
+}
+
+.conflict-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    color: #856404;
+}
+
+.conflict-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.conflict-dialog p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+}
+
+.dialog-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.dialog-btns button {
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-primary);
+    background: white;
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dialog-btns button:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.dialog-btns .btn-secondary {
+    border-color: #ced4da;
+    color: #495057;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.metric-item {
+    background: var(--color-bg-secondary);
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px dashed var(--color-border);
+    transition: all 0.2s;
+}
+
+.metric-item.highlightable:hover {
+    background: var(--color-surface);
+    border: 1px solid var(--color-accent);
+}
+
+.metric-label {
+    margin-bottom: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-text);
+}
+
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.star-icon {
+    font-size: 2rem;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.star-icon.active {
+    color: var(--color-accent);
+}
+
+.star-icon:hover {
+    color: var(--color-accent);
+    transform: scale(1.15);
+}
+
+.metric-detail-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+    line-height: 1.4;
+}
+
+/* Teacher Lookup Layout */
+.label-with-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.label-with-hint.compact {
+    justify-content: flex-start;
+    gap: 0.8rem;
+}
+
+.status-badges {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-badge.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.status-badge.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.teacher-lookup-row {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.teacher-input.select-mode {
+    border: 2px solid var(--color-primary);
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.lookup-btn {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 0 1.2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.lookup-btn:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* Semester Picker */
+.semester-wheel-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.year-input {
+    width: 100px;
+    text-align: center;
+}
+
+.term-select {
+    width: 90px;
+}
+
+.reset-sem-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+/* Indicators */
+.section-title-standard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+}
+
+.help-link-block {
+    align-self: center;
+    background: var(--color-bg-secondary);
+    border: 1px dashed var(--color-primary);
+    color: var(--color-primary);
+    padding: 0.7rem 2.5rem;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.help-link-block:hover {
+    background: var(--color-primary-light);
+    transform: scale(1.02);
+}
+
+.section-title-with-guide {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.section-title-with-guide h3 {
+    margin-bottom: 0 !important;
+}
+
+.emoji-guide-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    line-height: normal;
+}
+
+.emoji-guide-btn:hover {
+    transform: rotate(15deg) scale(1.2);
+}
+
+/* Footer Section */
+.submit-footer-centered {
+    margin-top: -0.5rem;
+    /* 負向 margin 讓條款更靠近上方 TextArea */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.submit-notice-centered {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background: var(--color-bg-secondary);
+    padding: 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    /* 將內部的感謝文字改為置中 */
+}
+
+/* 條款勾選樣式 */
+.terms-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0 0 1.2rem;
+    /* 移除頂部 margin 讓它貼近 textarea */
+    align-items: flex-start;
+    width: 100%;
+}
+
+.term-checkbox-label {
+    display: flex;
+    align-items: center;
+    /* 改為置中對齊 */
+    gap: 0.8rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    text-align: left;
+    padding: 0.4rem 0;
+    transition: color 0.2s;
+}
+
+.term-checkbox-label:hover {
+    color: var(--color-primary);
+}
+
+.term-checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+.error-text.centered {
+    text-align: center;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.notice {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    line-height: 1.8;
+}
+
+.submit-btn {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 1.1rem 6rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: var(--shadow-md);
+    margin: 1rem auto 0;
+    /* 按鈕本身維持水平居中，但上方間距縮小 */
+    display: block;
+}
+
+.submit-page {
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    padding: 6rem 1rem 2rem;
+    /* 回歸正常的底部 padding */
+    color: var(--color-text);
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .submit-form {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+    }
+}

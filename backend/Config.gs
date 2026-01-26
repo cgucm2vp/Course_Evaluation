@@ -15,7 +15,9 @@ const CONFIG = {
     ACCOUNTS: '帳號密碼',
     COURSES: '評鑑資料庫',
     COURSE_DATABASE: '課程資料庫',
-    VIEW_LOGS: '瀏覽記錄'  // 用於追蹤熱門課程，如果不存在會自動建立
+    VIEW_LOGS: '瀏覽記錄',  // 用於追蹤熱門課程，如果不存在會自動建立
+    TEACHER_LOOKUP: '【學期課程授課教師對照表】',
+    EVAL_RESPONSES: '課程評鑑回覆'
   },
   
   // 管理員郵件（用於接收異常回報通知）
@@ -66,6 +68,9 @@ function getSheet(sheetName) {
     } else if (sheetName === 'SystemReports') {
       sheet = ss.insertSheet(sheetName);
       sheet.appendRow(['Timestamp', 'Reporter', 'Content', 'DeviceInfo', 'Resolved']);
+    } else if (sheetName === CONFIG.SHEETS.EVAL_RESPONSES) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(['核准並移動', '學年', '母分類', '子分類', '課程名稱', '授課教師', '甜度', '涼度', '有料程度', '心得', '時間戳記']);
     }
   }
   

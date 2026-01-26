@@ -53,6 +53,12 @@ function handleRequest(e) {
       case 'getCourseMapping':
         result = handleGetCourseMapping();
         break;
+      case 'submitEvaluation':
+        result = handleSubmitEvaluation(params);
+        break;
+      case 'getTeacherLookup':
+        result = handleLookupTeachers(params);
+        break;
       default:
         result = { success: false, message: '未知的操作：' + action };
     }
@@ -710,4 +716,143 @@ function authorizeEmailPermissions() {
   
   Logger.log('✅ 如果您看到這行，代表授權成功並且信件已寄出！');
   return '授權成功！';
+}
+
+/**
+ * 處理評價提交
+ */
+function handleSubmitEvaluation(params) {
+  try {
+    const sheet = getSheet(CONFIG.SHEETS.EVAL_RESPONSES);
+    
+    // 準備資料列
+    const rowData = [
+      false, // 核准並移動 (核取方塊)
+      params.year || '',
+      params.category || '',
+      params.subcategory || '',
+      params.courseName || '',
+      params.teacher || '',
+      params.sweetness || 0,
+      params.coolness || 0,
+      params.richness || 0,
+      params.review || '',
+      new Date() // 時間戳記
+    ];
+    
+    sheet.appendRow(rowData);
+    
+    // 為新列的第一欄插入核取方塊
+    const lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow, 1).insertCheckboxes();
+    
+    return { success: true, message: '感謝您的回饋！評價已成功送出，待管理員審核後將會發佈。' };
+  } catch (e) {
+    return { success: false, message: '提交失敗：' + e.toString() };
+  }
+}
+
+/**
+ * 根據學期與課程名稱尋找教師 (改進版：年份優先 + 模糊搜尋)
+ */
+function handleLookupTeachers(params) {
+  const semesterParam = (params.semester || '').toString().trim();
+  const courseParam = (params.courseName || '').toString().trim();
+  
+  if (!semesterParam || !courseParam) {
+    return { success: true, data: [], message: '請提供學期與課程名稱' };
+  }
+  
+  try {
+    const sheet = getSheet(CONFIG.SHEETS.TEACHER_LOOKUP);
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return { success: true, data: [] };
+
+    const headers = data[0].map(h => h.toString().trim());
+    const findHeader = (targets) => headers.findIndex(h => targets.some(t => h.includes(t)));
+    
+    const semesterIdx = findHeader(['修課學期', '學期', 'Semester']);
+    const courseIdx = findHeader(['課程名稱', 'Course', '課程']);
+    const teacherIdx = findHeader(['授課教師', '教師', 'Teacher']);
+
+    if (semesterIdx === -1 || courseIdx === -1 || teacherIdx === -1) {
+      return { success: false, message: '教師對照表格式欄位識別失敗' };
+    }
+    
+    const normalizeCourse = (str) => {
+      if (!str) return '';
+      // 僅移除多餘空格與統一符號，不刪除括號內的內容
+      return str.toString()
+        .replace(/[（\(\)）\[\]【】\s\-_]+/g, '')
+        .toLowerCase();
+    };
+    
+    const normalizeSem = (str) => str.toString().replace(/[^a-zA-Z0-9]/g, '');
+    
+    const targetCourseRaw = courseParam.toString().trim();
+    const targetCourseNorm = normalizeCourse(courseParam);
+    const targetSemNorm = normalizeSem(semesterParam);
+    
+    const matches = [];
+    const MIN_SIMILARITY = 0.4; 
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowSemNorm = normalizeSem(row[semesterIdx]);
+      
+      if (rowSemNorm === targetSemNorm) {
+        const rowCourseNameRaw = row[courseIdx].toString().trim();
+        const rowCourseNorm = normalizeCourse(rowCourseNameRaw);
+        const rowTeacher = row[teacherIdx] ? row[teacherIdx].toString().trim() : '';
+        
+        if (!rowTeacher) continue;
+
+        // 比對邏輯升級：
+        // 1. 如果完全一致 (含括號)，相似度 1.0
+        // 2. 如果正規化後一致，相似度 0.95
+        // 3. 如果包含關係，相似度 0.8
+        // 4. 最後才是 Levenshtein 相似度
+        let score = 0;
+        if (rowCourseNameRaw === targetCourseRaw) {
+          score = 1.0;
+        } else if (rowCourseNorm === targetCourseNorm) {
+          score = 0.95;
+        } else if (rowCourseNorm.includes(targetCourseNorm) || targetCourseNorm.includes(rowCourseNorm)) {
+          score = 0.8;
+        } else {
+          score = calculateSimilarity(rowCourseNorm, targetCourseNorm);
+        }
+        
+        if (score >= MIN_SIMILARITY) {
+          matches.push({ teacher: rowTeacher, score: score });
+        }
+      }
+    }
+    
+    if (matches.length === 0) {
+      return { success: true, data: [], message: '找不到符合學期與課程的老師' };
+    }
+
+    // 依分數排序並去重
+    matches.sort((a, b) => b.score - a.score);
+    const maxScore = matches[0].score;
+    const bestTeachers = new Set();
+    
+    matches.forEach(m => {
+      // 僅回傳最高分的一組老師 (容許極小誤差)
+      if (m.score >= maxScore - 0.01) {
+        bestTeachers.add(m.teacher);
+      }
+    });
+    
+    const result = Array.from(bestTeachers);
+    return { 
+      success: true, 
+      data: result,
+      count: result.length,
+      matchType: maxScore >= 0.95 ? 'exact' : 'fuzzy'
+    };
+  } catch (e) {
+    return { success: false, message: '搜尋失敗：' + e.toString() };
+  }
 }

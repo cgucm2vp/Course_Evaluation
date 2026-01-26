@@ -158,5 +158,42 @@ const api = {
             return { success: false, message: '回報失敗，請稍後再試' };
         }
     },
+
+    /**
+     * 提交課程評鑑
+     */
+    submitEvaluation: async (evaluationData) => {
+        try {
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'submitEvaluation',
+                    ...evaluationData
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Submit evaluation error:', error);
+            return { success: false, message: '提交失敗，請稍後再試' };
+        }
+    },
+
+    /**
+     * 檢索教師
+     */
+    lookupTeachers: async (semester, courseName) => {
+        try {
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'getTeacherLookup',
+                    semester,
+                    courseName
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Lookup teachers error:', error);
+            return { success: false, message: '檢索教師失敗' };
+        }
+    }
 };
 export default api;

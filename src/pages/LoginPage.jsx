@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import config from '../config';
+import ReportModal from '../components/ReportModal';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -9,6 +10,7 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -36,7 +38,7 @@ function LoginPage() {
                 <div className="login-card fade-in">
                     <div className="login-header">
                         <h1 className="login-title">課程指引與評鑑查詢系統</h1>
-                        <p className="login-subtitle">探索最真實的課程評價</p>
+                        <p className="login-subtitle">收錄CM117至CM121的真實課程評價</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="login-form">
@@ -85,9 +87,28 @@ function LoginPage() {
                 </div>
 
                 <div className="login-footer">
-                    <p>© 長庚中醫系學會所有</p>
+                    <button
+                        className="guest-submit-btn"
+                        onClick={() => navigate('/submit')}
+                    >
+                        💡 省略登入流程：快速前往填寫課程評鑑
+                    </button>
+                    <div className="footer-bottom-row">
+                        <p>© 長庚中醫系學會所有</p>
+                        <button
+                            className="login-report-btn-inline"
+                            onClick={() => setIsReportOpen(true)}
+                        >
+                            系統異常回報
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <ReportModal
+                isOpen={isReportOpen}
+                onClose={() => setIsReportOpen(false)}
+            />
         </div>
     );
 }
