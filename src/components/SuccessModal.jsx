@@ -16,7 +16,7 @@ function SuccessModal({ isOpen, onAddNext, onReturn }) {
                         再寫一則評鑑
                     </button>
                     <button className="btn btn-outline" onClick={onReturn}>
-                        返回回首頁
+                        返回首頁
                     </button>
                 </div>
             </div>
