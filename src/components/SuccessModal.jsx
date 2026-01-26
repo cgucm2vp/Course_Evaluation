@@ -1,7 +1,7 @@
 import React from 'react';
 import './SuccessModal.css';
 
-function SuccessModal({ isOpen, onAddNext, onReturn }) {
+function SuccessModal({ isOpen, onAddNext, onReturn, targetCourse, onReturnToCourse }) {
     if (!isOpen) return null;
 
     return (
@@ -12,10 +12,17 @@ function SuccessModal({ isOpen, onAddNext, onReturn }) {
                 <p className="success-message">感謝您的慷慨分享，您的評鑑將在管理員審核後正式發佈，為學弟妹指引方向。</p>
 
                 <div className="success-actions">
-                    <button className="btn btn-primary" onClick={onAddNext}>
+                    <button className="btn btn-primary btn-full" onClick={onAddNext}>
                         再寫一則評鑑
                     </button>
-                    <button className="btn btn-outline" onClick={onReturn}>
+
+                    {targetCourse && (
+                        <button className="btn btn-secondary btn-full" onClick={onReturnToCourse}>
+                            回到 {targetCourse}
+                        </button>
+                    )}
+
+                    <button className="btn btn-outline btn-full" onClick={onReturn}>
                         返回首頁
                     </button>
                 </div>

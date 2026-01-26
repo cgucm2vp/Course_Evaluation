@@ -257,6 +257,16 @@ function SubmitPage() {
         else navigate('/');
     };
 
+    const handleReturnToCourse = () => {
+        if (location.state?.courseName && location.state?.teacher) {
+            const encodedName = encodeURIComponent(location.state.courseName);
+            const encodedTeacher = encodeURIComponent(location.state.teacher);
+            navigate(`/course/${encodedName}/${encodedTeacher}`);
+        } else {
+            handleReturn();
+        }
+    };
+
     const filteredCourses = useMemo(() => {
         if (!formData.category || formData.category === '其他' || !mapping) return allCourses;
         const catData = mapping[formData.category];
@@ -542,6 +552,8 @@ function SubmitPage() {
                 isOpen={true}
                 onAddNext={handleAddNext}
                 onReturn={handleReturn}
+                targetCourse={location.state?.courseName}
+                onReturnToCourse={handleReturnToCourse}
             />}
             <Footer />
         </div>
