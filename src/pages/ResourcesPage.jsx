@@ -67,11 +67,11 @@ function ResourcesPage() {
         // 故改用「追蹤提醒」模式，確保使用者如果看到 404 後切換回來，報修按鈕就在手邊。
         setActiveAssistant({ title, url });
 
-        // 3. 設定自動消失 (20秒後)
+        // 3. 設定自動消失 (10秒後)
         if (assistantTimer) clearTimeout(assistantTimer);
         const timer = setTimeout(() => {
             setActiveAssistant(null);
-        }, 20000);
+        }, 10000);
         setAssistantTimer(timer);
     };
 
@@ -267,7 +267,7 @@ function ResourcesPage() {
 
             {/* 懸浮報修小幫手 (助理模式) */}
             {activeAssistant && (
-                <div className="link-assistant-toast fade-in">
+                <div className="link-assistant-toast assistant-popup">
                     <div className="assistant-content">
                         <span className="assistant-icon">🚀</span>
                         <div className="assistant-text">
