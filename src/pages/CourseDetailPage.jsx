@@ -29,6 +29,10 @@ function CourseDetailPage() {
         const userData = sessionStorage.getItem(config.STORAGE_KEYS.USER);
         if (userData) {
             setUser(JSON.parse(userData));
+        } else {
+            // 未登入不可查看詳情，導向登入頁面
+            navigate('/');
+            return;
         }
 
         loadCourseDetail();

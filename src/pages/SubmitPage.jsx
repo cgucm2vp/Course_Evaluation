@@ -41,12 +41,21 @@ function SubmitPage() {
     const [showSettings, setShowSettings] = useState(false);
 
     const handleBack = () => {
+        // 如果未登入，統一回到首頁 (LoginPage)
+        if (!user) {
+            navigate('/');
+            return;
+        }
+
         if (location.state?.from) {
             navigate(location.state.from);
         } else if (window.history.length > 1) {
+            // 檢查是否是在本站內的歷史紀錄 (這裡比較難判定，但通常 navigate(-1) 會出站)
+            // 為了保險，如果 history.length > 1 且原本就在本應用，navigate(-1)
+            // 如果不確定，直接回 /search 較穩
             navigate(-1);
         } else {
-            navigate(user ? '/search' : '/');
+            navigate('/search');
         }
     };
     const [msg, setMsg] = useState({ type: '', content: '' });

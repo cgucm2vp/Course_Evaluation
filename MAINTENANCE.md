@@ -382,6 +382,47 @@ git push origin main
 - 您會看到最新的部署流程正在運行（黃色小圈圈）。
 - 當圖示變為綠色勾勾時，代表網頁已完成更新。
 
+## 💻 新環境開發設定 (Developer Setup)
+如果您需要更換電腦進行開發，或將專案移交給下一任管理員，請參考以下步驟。
+
+### 1. 必備環境安裝
+在開始之前，請確保電腦已安裝以下軟體：
+- **[Node.js](https://nodejs.org/)**: 建議安裝 LTS 版本。
+- **[Git](https://git-scm.com/)**: 用於與 GitHub 同步。
+- **[VS Code](https://code.visualstudio.com/)**: 建議使用的編輯器。
+
+### 2. 取得專案原始碼
+在新電腦的終端機執行：
+```bash
+git clone https://github.com/cgucm2vp/Course_Evaluation.git
+cd Course_Evaluation
+```
+
+### 3. 安裝套件
+進入專案資料夾後，安裝必要的依賴套件：
+```bash
+npm install
+```
+
+### 4. 設定環境變數 (.env)
+由於 `.env` 檔案包含 API 網址且不會上傳到 GitHub，您必須**手動建立**它：
+1. 在專案根目錄建立一個名為 `.env` 的檔案。
+2. 輸入以下內容（請替換為實際的 API URL）：
+   ```env
+   VITE_API_BASE_URL=https://script.google.com/macros/s/您的_API_ID/exec
+   ```
+
+### 5. 使用 AI 助理協助 (Antigravity)
+本專案高度建議搭配 **Antigravity** (AI 助理) 進行維護。
+- **如何運作**：在支援 Antigravity 的環境下開啟此資料夾，助理會自動讀取此 `MAINTENANCE.md` 與專案結構。
+- **如何交接**：您可以直接告訴助理：「請閱讀維護文件並幫我完成某項任務」，它能協助您處理從資料庫更換到 UI 調整的所有細節。
+
+### 6. 啟動開發伺服器
+執行以下指令即可在瀏覽器預覽網頁：
+```bash
+npm run dev
+```
+
 ---
- 
- 最後更新：2026-02-01
+
+最後更新：2026-02-01

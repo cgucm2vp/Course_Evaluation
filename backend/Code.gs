@@ -147,10 +147,10 @@ function handleSearch(params) {
     const row = data[i];
     const course = {
       rowIndex: i + 1,
-      category: row[0],
-      subcategory: row[1],
-      name: row[2],
-      teacher: row[3],
+      category: row[0] ? row[0].toString().trim() : '',
+      subcategory: row[1] ? row[1].toString().trim() : '',
+      name: row[2] ? row[2].toString().trim() : '',
+      teacher: row[3] ? row[3].toString().trim() : '',
       year: row[4],
       sweetness: row[5],
       coolness: row[6],
@@ -163,16 +163,16 @@ function handleSearch(params) {
     
     if (keyword) {
       if (isExact) {
-        if (course.name !== keyword) match = false;
+        if (course.name !== keyword.trim()) match = false;
       } else {
-        if (!fuzzyMatch(course.name, keyword)) match = false;
+        if (!fuzzyMatch(course.name, keyword.trim())) match = false;
       }
     }
     
-    if (teacher && !fuzzyMatch(course.teacher, teacher)) match = false;
-    if (year && course.year.toString() !== year) match = false;
-    if (category && course.category !== category) match = false;
-    if (subcategory && course.subcategory !== subcategory) match = false;
+    if (teacher && !fuzzyMatch(course.teacher, teacher.trim())) match = false;
+    if (year && course.year.toString().trim() !== year.toString().trim()) match = false;
+    if (category && course.category !== category.trim()) match = false;
+    if (subcategory && course.subcategory !== subcategory.trim()) match = false;
     if (match) {
       if (shouldMerge) {
         const uniqueKey = `${course.name}|${course.teacher}`;
@@ -338,8 +338,8 @@ function handleGetCourseMapping() {
 function fuzzyMatch(text, query) {
   if (!text || !query) return false;
   
-  text = text.toString().toLowerCase();
-  query = query.toString().toLowerCase();
+  text = text.toString().toLowerCase().trim();
+  query = query.toString().toLowerCase().trim();
   
   // 如果直接包含，回傳 true
   if (text.includes(query)) {
@@ -407,9 +407,15 @@ function handleGetCourseDetail(params) {
   };
   
   // 收集所有符合的評價
+  const searchName = courseName.trim();
+  const searchTeacher = teacher.trim();
+
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    if (row[2] === courseName && row[3] === teacher) {
+    const rowName = row[2] ? row[2].toString().trim() : '';
+    const rowTeacher = row[3] ? row[3].toString().trim() : '';
+
+    if (rowName === searchName && rowTeacher === searchTeacher) {
       reviews.push({
         category: row[0],
         subcategory: row[1],
@@ -734,10 +740,14 @@ function handleRecordView(params) {
     const sheet = getSheet(CONFIG.SHEETS.VIEW_LOGS);
     const data = sheet.getDataRange().getValues();
     
-    // 查找是否已有記錄
-    let found = false;
+    const targetName = courseName.trim();
+    const targetTeacher = teacher.trim();
+
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === courseName && data[i][1] === teacher) {
+      const rowName = data[i][0] ? data[i][0].toString().trim() : '';
+      const rowTeacher = data[i][1] ? data[i][1].toString().trim() : '';
+
+      if (rowName === targetName && rowTeacher === targetTeacher) {
         // 更新瀏覽次數和時間
         const currentCount = data[i][3] || 0;
         sheet.getRange(i + 1, 3).setValue(new Date()); // 更新時間
@@ -747,9 +757,9 @@ function handleRecordView(params) {
       }
     }
     
-    // 如果沒有記錄，新增一筆
+    // 如果沒有記錄，新增一筆 (這裡存入時也建議 trim)
     if (!found) {
-      sheet.appendRow([courseName, teacher, new Date(), 1]);
+      sheet.appendRow([targetName, targetTeacher, new Date(), 1]);
     }
     
     return { success: true, message: '記錄成功' };
@@ -765,14 +775,20 @@ function getCourseInfo(courseName, teacher) {
   const sheet = getSheet(CONFIG.SHEETS.COURSES);
   const data = sheet.getDataRange().getValues();
   
+  const targetName = courseName.trim();
+  const targetTeacher = teacher.trim();
+
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    if (row[2] === courseName && row[3] === teacher) {
+    const rowName = row[2] ? row[2].toString().trim() : '';
+    const rowTeacher = row[3] ? row[3].toString().trim() : '';
+
+    if (rowName === targetName && rowTeacher === targetTeacher) {
       return {
-        category: row[0],
-        subcategory: row[1],
-        name: row[2],
-        teacher: row[3]
+        category: row[0] ? row[0].toString().trim() : '',
+        subcategory: row[1] ? row[1].toString().trim() : '',
+        name: rowName,
+        teacher: rowTeacher
       };
     }
   }
