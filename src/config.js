@@ -9,7 +9,7 @@ const config = {
     API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '',
     // 應用程式設定
     APP_NAME: '課程指引與評鑑查詢系統',
-    USER_MANUAL_URL: 'https://drive.google.com/drive/folders/1a6hkCm-nAiMo0fNq00_1AmscYg-vp6Tp?usp=drive_link', // 請在此處替換為實際的操作手冊下載連結
+    USER_MANUAL_URL: 'https://drive.google.com/file/d/11T9S86_JS3n88dR2USaaBruRIYofrn7e/view?usp=sharing', // 請在此處替換為實際的操作手冊下載連結
 
     // 本地儲存鍵名
     STORAGE_KEYS: {
@@ -154,7 +154,7 @@ const config = {
         {
             category: '其他檔案與資料',
             files: [
-                { id: 1, name: '修課指引與評鑑查詢系統操作手冊', size: '如有任何問題請聯繫常務副會長', type: 'FILE', url: 'https://drive.google.com/drive/folders/1a6hkCm-nAiMo0fNq00_1AmscYg-vp6Tp?usp=drive_link' },
+                { id: 1, name: '修課指引與評鑑查詢系統操作手冊', size: '如有任何問題請聯繫常務副會長', type: 'FILE', url: 'https://drive.google.com/file/d/11T9S86_JS3n88dR2USaaBruRIYofrn7e/view?usp=sharing' },
                 { id: 2, name: '神秘小彩蛋', size: '？', type: 'EGG', url: 'https://youtu.be/dQw4w9WgXcQ?si=UZQwOv-5rDBWFKGq' },
             ]
         }

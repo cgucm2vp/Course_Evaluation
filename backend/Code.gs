@@ -743,6 +743,7 @@ function handleRecordView(params) {
     const targetName = courseName.trim();
     const targetTeacher = teacher.trim();
 
+    let found = false;
     for (let i = 1; i < data.length; i++) {
       const rowName = data[i][0] ? data[i][0].toString().trim() : '';
       const rowTeacher = data[i][1] ? data[i][1].toString().trim() : '';
