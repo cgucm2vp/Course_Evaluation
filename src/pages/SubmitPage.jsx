@@ -5,6 +5,9 @@ import config from '../config';
 import MetricsGuideModal from '../components/MetricsGuideModal';
 import ReviewGuideModal from '../components/ReviewGuideModal';
 import SuccessModal from '../components/SuccessModal';
+import MessageBox from '../components/MessageBox';
+import SettingsModal from '../components/SettingsModal';
+import EasterEggCelebration from '../components/EasterEggCelebration';
 import Footer from '../components/Footer';
 import './SubmitPage.css';
 
@@ -34,15 +37,35 @@ function SubmitPage() {
     const [formData, setFormData] = useState(initialFormData);
     const [loading, setLoading] = useState(false);
     const [lookupLoading, setLookupLoading] = useState(false);
+    const [user, setUser] = useState(null);
+    const [showSettings, setShowSettings] = useState(false);
+
+    const handleBack = () => {
+        if (location.state?.from) {
+            navigate(location.state.from);
+        } else if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate(user ? '/search' : '/');
+        }
+    };
     const [msg, setMsg] = useState({ type: '', content: '' });
     const [teacherSuggestions, setTeacherSuggestions] = useState([]);
     const [lookupStatus, setLookupStatus] = useState(null);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
     const [isReviewGuideOpen, setIsReviewGuideOpen] = useState(false);
     const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+    const [showEasterEgg, setShowEasterEgg] = useState(false);
     const [conflict, setConflict] = useState(null);
     const [isManualTeacher, setIsManualTeacher] = useState(false);
     const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        const userData = sessionStorage.getItem(config.STORAGE_KEYS.USER);
+        if (userData) {
+            setUser(JSON.parse(userData));
+        }
+    }, []);
 
     // 處理傳入的自動填充狀態
     useEffect(() => {
@@ -234,8 +257,20 @@ function SubmitPage() {
         setLoading(true);
         try {
             const result = await api.submitEvaluation(formData);
-            if (result && result.success) setIsSuccessOpen(true);
-            else setMsg({ type: 'error', content: result?.message || '提交失敗' });
+            if (result && result.success) {
+                // 彩蛋 1 追蹤：連續提交 5 次
+                const currentCount = parseInt(sessionStorage.getItem('ee_eval_count') || '0') + 1;
+                sessionStorage.setItem('ee_eval_count', currentCount.toString());
+
+                if (currentCount === 5) {
+                    setShowEasterEgg(true);
+                    sessionStorage.setItem('ee_eval_count', '0'); // 達成後歸零
+                }
+
+                setIsSuccessOpen(true);
+            } else {
+                setMsg({ type: 'error', content: result?.message || '提交失敗' });
+            }
         } catch (err) {
             setMsg({ type: 'error', content: '服務暫時異常' });
         }
@@ -252,7 +287,7 @@ function SubmitPage() {
     };
 
     const handleReturn = () => {
-        const userData = localStorage.getItem(config.STORAGE_KEYS.USER);
+        const userData = sessionStorage.getItem(config.STORAGE_KEYS.USER);
         if (userData) navigate('/search');
         else navigate('/');
     };
@@ -306,11 +341,18 @@ function SubmitPage() {
 
     return (
         <div className="submit-page">
-            <header className="submit-header">
-                <button className="submit-back-btn" onClick={handleTopBack}>← 返回上一頁</button>
-                <h1>課程評鑑撰寫</h1>
-                <p className="subtitle">傳承修課經驗，成為彼此學習路上的引導者</p>
-            </header>
+            {/* 統一 Header 結構 */}
+            <div className="submit-simple-header">
+                <div className="container">
+                    <button onClick={handleBack} className="submit-back-btn-pill" title="回上一頁">
+                        返回
+                    </button>
+                    <div className="submit-header-content">
+                        <h1 className="submit-title">課程評鑑撰寫</h1>
+                        <p className="submit-subtitle">分享您的修課經驗，幫助更多學弟妹做出明智選擇</p>
+                    </div>
+                </div>
+            </div>
 
             <main className="submit-container">
                 {msg.content && <div className={`alert alert-${msg.type}`}>{msg.content}</div>}
@@ -365,36 +407,36 @@ function SubmitPage() {
                     </section>
 
                     {conflict && (
-                        <div className="conflict-dialog slide-in border-accent">
-                            <div className="conflict-header">
-                                <span className="icon">🔍</span>
-                                <h4>分類自動建議</h4>
-                            </div>
-                            <p>{conflict.message}</p>
-                            <div className="dialog-btns">
-                                {conflict.type === 'MISMATCH' ? (
-                                    <>
-                                        {Array.isArray(conflict.matches) && conflict.matches.map((m, i) => (
-                                            <button key={i} type="button" onClick={() => {
-                                                setFormData(prev => ({ ...prev, category: m.parent, subcategory: m.sub }));
+                        <div className="conflict-suggestion-card slide-in">
+                            <div className="suggestion-badge">💡 自動建議</div>
+                            <div className="suggestion-content">
+                                <h4>分類不符確認</h4>
+                                <p>{conflict.message}</p>
+                                <div className="suggestion-actions">
+                                    {conflict.type === 'MISMATCH' ? (
+                                        <>
+                                            {Array.isArray(conflict.matches) && conflict.matches.map((m, i) => (
+                                                <button key={i} type="button" className="action-btn primary" onClick={() => {
+                                                    setFormData(prev => ({ ...prev, category: m.parent, subcategory: m.sub }));
+                                                    setConflict(null);
+                                                }}>更正為「{m.parent}」</button>
+                                            ))}
+                                            <button type="button" className="action-btn secondary" onClick={() => setConflict(null)}>保留原分類</button>
+                                            <button type="button" className="action-btn outline" onClick={() => {
+                                                setFormData(prev => ({ ...prev, category: '其他', subcategory: '' }));
                                                 setConflict(null);
-                                            }}>更正為「{m.parent}」</button>
-                                        ))}
-                                        <button type="button" className="btn-secondary" onClick={() => setConflict(null)}>保留原分類</button>
-                                        <button type="button" className="btn-secondary" onClick={() => {
-                                            setFormData(prev => ({ ...prev, category: '其他', subcategory: '' }));
-                                            setConflict(null);
-                                        }}>歸為「其他」</button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button type="button" onClick={() => setConflict(null)}>確認正確</button>
-                                        <button type="button" className="btn-secondary" onClick={() => {
-                                            setFormData(prev => ({ ...prev, category: '其他', subcategory: '' }));
-                                            setConflict(null);
-                                        }}>歸為「其他」</button>
-                                    </>
-                                )}
+                                            }}>歸為「其他」</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button type="button" className="action-btn primary" onClick={() => setConflict(null)}>確認正確</button>
+                                            <button type="button" className="action-btn outline" onClick={() => {
+                                                setFormData(prev => ({ ...prev, category: '其他', subcategory: '' }));
+                                                setConflict(null);
+                                            }}>歸為「其他」</button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -425,13 +467,13 @@ function SubmitPage() {
                             </div>
 
                             <div className="form-group" ref={teacherRef}>
-                                <div className="label-with-hint compact">
+                                <div className="label-with-badges">
                                     <label>授課教師 <span className="required">*</span></label>
-                                    <div className="status-badges">
-                                        {lookupStatus === 'single' && <span className="status-badge success">✅ 已尋獲</span>}
-                                        {lookupStatus === 'confirmed' && <span className="status-badge success">✅ 已選取</span>}
-                                        {lookupStatus === 'multiple' && <span className="status-badge info">💡 有多位</span>}
-                                        {lookupStatus === 'none' && <span className="status-badge warning">⚠️ 無資料</span>}
+                                    <div className="inline-status-badges">
+                                        {lookupStatus === 'single' && <span className="badge-pill success">已尋獲</span>}
+                                        {lookupStatus === 'confirmed' && <span className="badge-pill success">已選取</span>}
+                                        {lookupStatus === 'multiple' && <span className="badge-pill info">有多位</span>}
+                                        {lookupStatus === 'none' && <span className="badge-pill warning">無資料</span>}
                                     </div>
                                 </div>
                                 <div className={`teacher-lookup-row ${errors.teacher ? 'has-error' : ''}`}>
@@ -472,9 +514,11 @@ function SubmitPage() {
                     </section>
 
                     <section className="form-section" ref={metricsRef}>
-                        <div className="section-title-standard">
+                        <div className="section-title-inline">
                             <h3>4. 評量指標 <span className="required">*</span></h3>
-                            <button type="button" className="help-link-block" onClick={() => setIsGuideOpen(true)}>ℹ️ 查看指標標準說明 (甜度/涼度維度對照)</button>
+                            <button type="button" className="help-link-inline" onClick={() => setIsGuideOpen(true)} title="查看指標標準說明">
+                                ℹ️ 指標說明
+                            </button>
                         </div>
                         <div className={`metrics-grid ${errors.metrics ? 'metrics-error-border' : ''}`}>
                             {[
@@ -500,16 +544,17 @@ function SubmitPage() {
                                 </div>
                             ))}
                         </div>
-                        {errors.metrics && <div className="error-center"><span className="error-text">⚠️ 請完成所有指標評分</span></div>}
+                        {errors.metrics && <div className="error-block-centered"><span className="error-text">⚠️ 請完成所有指標評分</span></div>}
                     </section>
 
                     <section className="form-section">
-                        <div className="section-title-with-guide">
+                        <div className="section-title-inline">
                             <h3>5. 評鑑與修課指引</h3>
                             <button
                                 type="button"
-                                className="emoji-guide-btn"
+                                className="emoji-guide-btn-inline"
                                 onClick={() => setIsReviewGuideOpen(true)}
+                                title="評鑑撰寫指引"
                             >
                                 ⓘ
                             </button>
@@ -564,6 +609,18 @@ function SubmitPage() {
                 targetCourse={location.state?.courseName}
                 onReturnToCourse={handleReturnToCourse}
             />}
+
+            <EasterEggCelebration
+                isOpen={showEasterEgg}
+                onClose={() => setShowEasterEgg(false)}
+            />
+
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                username={user?.username}
+            />
+
             <Footer />
         </div>
     );

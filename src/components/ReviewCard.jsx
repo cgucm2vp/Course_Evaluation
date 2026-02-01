@@ -12,12 +12,13 @@ function ReviewCard({ review }) {
         <div className={`review-card ${isExpanded ? 'expanded' : ''}`}>
             <div className="review-header">
                 <div className="review-meta">
-                    <span className="review-year">📅 {review.year}</span>
+                    <span className="review-year">📅 {review.semester || review.year}</span>
                     <div className="review-scores">
                         <span className="score-badge sweetness">🍭 {review.sweetness}</span>
                         <span className="score-badge coolness">❄️ {review.coolness}</span>
                         <span className="score-badge richness">📚 {review.richness}</span>
                     </div>
+
                 </div>
             </div>
 

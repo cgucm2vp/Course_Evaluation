@@ -24,27 +24,41 @@
 .review-meta {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    /* 改為縱向，防止 Figure 3 的學期文字換行 */
+    align-items: flex-start;
+    gap: var(--spacing-sm);
 }
 
 .review-year {
-    font-size: 0.9375rem;
-    color: var(--color-text-secondary);
-    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
 }
+
+
 
 .review-scores {
     display: flex;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
+    gap: 0.4rem;
+    /* 縮小間距 */
+    flex-wrap: nowrap;
+    /* 強制一整行 */
 }
 
 .score-badge {
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: 0.2rem 0.6rem;
+    /* 縮小內距 */
     border-radius: var(--radius-full);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
+    /* 微調字級 */
     font-weight: 500;
+    white-space: nowrap;
 }
+
 
 .score-badge.sweetness {
     background: hsl(340, 82%, 95%);
@@ -60,6 +74,7 @@
     background: hsl(142, 71%, 95%);
     color: hsl(142, 71%, 35%);
 }
+
 
 .review-content {
     flex: 1;

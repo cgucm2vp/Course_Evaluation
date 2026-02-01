@@ -8,6 +8,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: var(--spacing-md);
+    margin-bottom: 3.5rem;
+    /* 加大間距，符合用戶空間感需求 */
 }
 
 .stat-card {
@@ -46,9 +48,11 @@
 }
 
 .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    /* 微調大小確保同列顯示，解決 Figure 3 */
     font-weight: 700;
     color: var(--color-text);
+    white-space: nowrap;
 }
 
 .charts-container {

@@ -8,47 +8,118 @@
 }
 
 .footer-content {
+    position: relative;
     display: flex;
     justify-content: center;
+    /* 電腦版主要置中功能鍵 */
     align-items: center;
-    gap: var(--spacing-lg);
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
+    min-height: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
 }
 
-.copyright {
-    margin: 0;
-}
-
-.footer-links {
+.footer-center {
     display: flex;
     align-items: center;
     gap: 1.5rem;
 }
 
-.footer-link-item {
-    color: var(--color-primary);
-    text-decoration: none;
+.footer-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0;
+    /* 移除寬大的按鈕內距 */
     font-weight: 600;
-}
-
-.footer-link-item:hover {
+    font-size: 0.95rem;
     text-decoration: underline;
-}
-
-.report-link-btn {
-    background: none;
-    border: none;
-    color: var(--color-text-tertiary);
-    /* Subtler color */
+    /* 預設加底線 */
+    transition: all 0.2s;
     cursor: pointer;
-    text-decoration: underline;
-    font-size: 0.9rem;
-    padding: 0;
-    transition: color var(--transition-fast);
+    border: none;
+    background: none;
 }
 
-.report-link-btn:hover {
+
+.footer-action-btn.primary {
+    color: var(--color-primary);
+}
+
+.footer-action-btn.primary:hover {
+    color: var(--color-primary-dark);
+}
+
+.footer-action-btn.secondary {
+    color: var(--color-text-tertiary);
+    font-size: 0.9rem;
+}
+
+
+.footer-action-btn.secondary:hover {
     color: var(--color-error);
-    /* Highlight on hover */
+}
+
+.footer-right {
+    position: absolute;
+    right: var(--spacing-lg);
+    bottom: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    text-align: right;
+}
+
+.footer-contact {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+}
+
+.footer-copyright {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+@media (max-width: 1024px) {
+    .footer-content {
+        flex-direction: column;
+        justify-content: center;
+        min-height: auto;
+        padding: var(--spacing-lg) var(--spacing-md);
+        gap: var(--spacing-lg);
+    }
+
+    .footer-center {
+        width: 100%;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .footer-right {
+        position: static;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        border-top: 1px solid var(--color-border-light);
+        padding-top: var(--spacing-md);
+    }
+
+    .footer-contact {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-center {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .footer-action-btn {
+        font-size: 0.85rem;
+    }
 }

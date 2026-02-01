@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import './ReportModal.css';
 
-function ReportModal({ isOpen, onClose }) {
+function ReportModal({ isOpen, onClose, initialContent = '' }) {
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            setContent(initialContent || '');
+        }
+    }, [isOpen, initialContent]);
 
     if (!isOpen) return null;
 

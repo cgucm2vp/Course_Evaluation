@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import config from '../config';
 import ReportModal from './ReportModal';
 import './Footer.css';
 
@@ -13,17 +14,30 @@ function Footer() {
     return (
         <footer className="app-footer">
             <div className="footer-content">
-                <p className="copyright">© 長庚中醫系學會所有</p>
-                <div className="footer-links">
-                    {!isSubmitPage && <Link to="/submit" className="footer-link-item">填寫評鑑</Link>}
+                <div className="footer-center">
+                    <a href={config.USER_MANUAL_URL} target="_blank" rel="noopener noreferrer" className="footer-action-btn secondary">
+                        📖 下載操作手冊
+                    </a>
+                    {!isSubmitPage && (
+                        <Link to="/submit" className="footer-action-btn primary">
+                            ✍️ 填寫評鑑
+                        </Link>
+                    )}
                     <button
-                        className="report-link-btn"
+                        className="footer-action-btn secondary"
                         onClick={() => setIsReportModalOpen(true)}
                     >
-                        系統異常回報
+                        🚩 問題回報
                     </button>
                 </div>
+                <div className="footer-right">
+                    <span className="footer-contact">管理員聯繫方式：cgucmsophomorevicechairman@gmail.com</span>
+                    <p className="footer-copyright">© 長庚中醫系學會所有</p>
+                </div>
             </div>
+
+
+
 
             <ReportModal
                 isOpen={isReportModalOpen}

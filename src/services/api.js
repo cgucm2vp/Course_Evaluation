@@ -83,17 +83,54 @@ const api = {
     /**
      * 取得隨機課程
      */
-    getRandomCourses: async () => {
+    getRandomCourses: async (filters = {}) => {
         try {
             const response = await axios.get(config.API_BASE_URL, {
                 params: {
-                    action: 'getRandomCourses'
+                    action: 'getRandomCourses',
+                    ...filters
                 }
             });
             return response.data;
         } catch (error) {
             console.error('Get random courses error:', error);
             return { success: false, message: '取得隨機課程失敗' };
+        }
+    },
+
+    /**
+     * 忘記密碼
+     */
+    forgotPassword: async (username) => {
+        try {
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'forgotPassword',
+                    username
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return { success: false, message: '請求失敗，請聯絡管理員' };
+        }
+    },
+
+    /**
+     * 更新個人資料
+     */
+    updateProfile: async (data) => {
+        try {
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'updateProfile',
+                    ...data
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Update profile error:', error);
+            return { success: false, message: '更新失敗' };
         }
     },
 

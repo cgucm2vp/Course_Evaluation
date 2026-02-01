@@ -1,26 +1,51 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
+import config from '../config';
 import DataVisualization from '../components/DataVisualization';
 import ReviewCard from '../components/ReviewCard';
 import MetricsGuideModal from '../components/MetricsGuideModal';
+import SettingsModal from '../components/SettingsModal';
 import Footer from '../components/Footer';
+import { useRef } from 'react';
 import './CourseDetailPage.css';
 
 function CourseDetailPage() {
     const { courseName, teacher } = useParams();
+    const [user, setUser] = useState(null);
     const [courseData, setCourseData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
     const [showGuideModal, setShowGuideModal] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
+    // 彩蛋：追蹤評論切換速度
+    const lastSwitchTime = useRef(Date.now());
+    const switchCount = useRef(0);
+
     useEffect(() => {
+        const userData = sessionStorage.getItem(config.STORAGE_KEYS.USER);
+        if (userData) {
+            setUser(JSON.parse(userData));
+        }
+
         loadCourseDetail();
         // 記錄瀏覽
         api.recordView(decodeURIComponent(courseName), decodeURIComponent(teacher));
-    }, [courseName, teacher]);
+
+        // 彩蛋：追蹤獨特課程瀏覽量
+        const courseId = `${courseName}-${teacher}`;
+        const viewedCourses = JSON.parse(sessionStorage.getItem('viewed_unique_courses') || '[]');
+        if (!viewedCourses.includes(courseId)) {
+            const newList = [...viewedCourses, courseId];
+            sessionStorage.setItem('viewed_unique_courses', JSON.stringify(newList));
+            if (newList.length === 10) {
+                window.dispatchEvent(new CustomEvent('trigger-easter-egg', { detail: { type: 'achievement' } }));
+            }
+        }
+    }, [courseName, teacher, navigate]);
 
     const loadCourseDetail = async () => {
         setLoading(true);
@@ -51,13 +76,34 @@ function CourseDetailPage() {
         setLoading(false);
     };
 
+    const handleLogout = () => {
+        sessionStorage.clear();
+        navigate('/');
+    };
+
+    const handleSwitchLogic = () => {
+        const now = Date.now();
+        if (now - lastSwitchTime.current < 1000) {
+            switchCount.current += 1;
+            if (switchCount.current >= 5) {
+                window.dispatchEvent(new CustomEvent('trigger-easter-egg', { detail: { type: 'speed' } }));
+                switchCount.current = 0; // 重置
+            }
+        } else {
+            switchCount.current = 1;
+        }
+        lastSwitchTime.current = now;
+    };
+
     const handlePrevReview = () => {
+        handleSwitchLogic();
         setCurrentReviewIndex((prev) =>
             prev > 0 ? prev - 1 : courseData.reviews.length - 1
         );
     };
 
     const handleNextReview = () => {
+        handleSwitchLogic();
         setCurrentReviewIndex((prev) =>
             prev < courseData.reviews.length - 1 ? prev + 1 : 0
         );
@@ -80,12 +126,11 @@ function CourseDetailPage() {
 
     return (
         <div className="course-detail-page">
-            <header className="detail-header">
+            <div className="detail-simple-header">
                 <div className="container">
-                    <button onClick={() => navigate('/search')} className="btn btn-ghost detail-back-btn">
-                        ← 返回搜尋
+                    <button onClick={() => navigate('/search')} className="detail-back-btn" title="返回搜尋頁面">
+                        ← 返回
                     </button>
-
                     <div className="course-header-info">
                         <h1 className="course-title">{courseData.course.name}</h1>
                         <div className="course-meta">
@@ -95,7 +140,7 @@ function CourseDetailPage() {
                         </div>
                     </div>
                 </div>
-            </header>
+            </div>
 
             <main className="detail-main">
                 <div className="container">
@@ -164,6 +209,7 @@ function CourseDetailPage() {
                                 className="btn btn-primary eval-cta-btn"
                                 onClick={() => navigate('/submit', {
                                     state: {
+                                        from: location.pathname,
                                         courseName: courseData.course.name,
                                         teacher: courseData.course.teacher,
                                         category: courseData.course.category,
@@ -182,6 +228,12 @@ function CourseDetailPage() {
             <MetricsGuideModal
                 isOpen={showGuideModal}
                 onClose={() => setShowGuideModal(false)}
+            />
+
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                username={user?.username}
             />
 
             <Footer />

@@ -59,6 +59,12 @@ function handleRequest(e) {
       case 'getTeacherLookup':
         result = handleLookupTeachers(params);
         break;
+      case 'forgotPassword':
+        result = handleForgotPassword(params);
+        break;
+      case 'updateProfile':
+        result = handleUpdateProfile(params);
+        break;
       default:
         result = { success: false, message: '未知的操作：' + action };
     }
@@ -538,12 +544,20 @@ function handleGetHotCourses(params) {
  */
 function handleGetRandomCourses(params) {
   try {
+    const category = params.category || '';
+    const subcategory = params.subcategory || '';
+    
     const sheet = getSheet(CONFIG.SHEETS.COURSES);
     const data = sheet.getDataRange().getValues();
     
     const courseMap = {};
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      
+      // 這裡加入分類篩選邏輯
+      if (category && row[0] !== category) continue;
+      if (subcategory && row[1] !== subcategory) continue;
+      
       const key = `${row[2]}|${row[3]}`;
       if (!courseMap[key]) {
         courseMap[key] = {
@@ -582,6 +596,126 @@ function handleGetRandomCourses(params) {
     return { success: true, data: randomCourses };
   } catch (e) {
     return { success: false, message: '取得隨機課程失敗：' + e.toString() };
+  }
+}
+
+/**
+ * 處理忘記密碼
+ */
+function handleForgotPassword(params) {
+  const username = params.username || '';
+  if (!username) return { success: false, message: '請提供帳號' };
+
+  const sheet = getSheet(CONFIG.SHEETS.ACCOUNTS);
+  const data = sheet.getDataRange().getValues();
+  
+  // 欄位索引：0:帳號, 1:密碼, 2:姓名, 3:備援Email (假設新增在第 4 欄)
+  let userRowIndex = -1;
+  let recoveryEmail = '';
+  let realName = '';
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === username) {
+      userRowIndex = i + 1;
+      recoveryEmail = data[i][3] || '';
+      realName = data[i][2] || username;
+      break;
+    }
+  }
+
+  if (userRowIndex === -1) return { success: false, message: '找不到此帳號' };
+  if (!recoveryEmail) return { success: false, message: '此帳號未設定備援電子郵件，請聯繫管理員' };
+
+  // 產生 10 位強健隨機密碼 (確保含英數)
+  const generateSecurePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const nums = "0123456789";
+    let pwd = "";
+    // 確保至少一個英文字母與一個數字
+    pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    pwd += nums.charAt(Math.floor(Math.random() * nums.length));
+    const all = chars + nums;
+    for (let i = 0; i < 8; i++) {
+      pwd += all.charAt(Math.floor(Math.random() * all.length));
+    }
+    // 打亂順序
+    return pwd.split('').sort(() => 0.5 - Math.random()).join('');
+  };
+  
+  const newPassword = generateSecurePassword();
+  
+  try {
+    // 更新密碼
+    sheet.getRange(userRowIndex, 2).setValue(newPassword);
+    
+    // 寄信
+    const subject = `[課程評鑑系統] 密碼重設通知`;
+    const body = `${realName} (${username}) 您好：\n\n您的帳號密碼已成功重設。\n\n新密碼為：${newPassword}\n\n請登入後立即更改密碼以確保安全。`;
+    MailApp.sendEmail(recoveryEmail, subject, body);
+    
+    return { success: true, message: '新密碼已寄送至您的備援信箱' };
+  } catch (e) {
+    return { success: false, message: '重設失敗：' + e.toString() };
+  }
+}
+
+/**
+ * 處理個人設定更新
+ */
+function handleUpdateProfile(params) {
+  const username = params.username || '';
+  const currentPassword = params.currentPassword || '';
+  const newPassword = params.newPassword || '';
+  const recoveryEmail = params.recoveryEmail || '';
+
+  if (!username || !currentPassword) return { success: false, message: '請提供完整驗證資訊' };
+
+  const sheet = getSheet(CONFIG.SHEETS.ACCOUNTS);
+  const data = sheet.getDataRange().getValues();
+  
+  let userRowIndex = -1;
+  let realName = '';
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === username && data[i][1] === currentPassword) {
+      userRowIndex = i + 1;
+      realName = data[i][2] || username;
+      break;
+    }
+  }
+
+  if (userRowIndex === -1) return { success: false, message: '原密碼錯誤' };
+
+  try {
+    let passwordChanged = false;
+    if (newPassword) {
+      // 後端驗證：英數混合且 8 位以上
+      const pwdRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+      if (!pwdRegex.test(newPassword)) {
+        return { success: false, message: '新密碼不符合規範：需包含英文字母與數字，且長度至少 8 位' };
+      }
+      sheet.getRange(userRowIndex, 2).setValue(newPassword);
+      passwordChanged = true;
+    }
+
+    if (recoveryEmail) {
+      sheet.getRange(userRowIndex, 4).setValue(recoveryEmail);
+      // 寄送 Email 變更通知
+      try {
+        const subject = `[課程評鑑系統] 備援電子郵件設定通知`;
+        const body = `${realName} (${username}) 您好：\n\n您的帳號已成功將此信箱設為備援電子郵件。\n\n未來若忘記密碼，系統將會寄送重設通知至此信箱。`;
+        MailApp.sendEmail(recoveryEmail, subject, body);
+      } catch (mailErr) {
+        console.error('Email notification failed:', mailErr);
+      }
+    }
+    
+    return { 
+      success: true, 
+      message: '資料更新成功', 
+      passwordChanged: passwordChanged 
+    };
+  } catch (e) {
+    return { success: false, message: '更新失敗：' + e.toString() };
   }
 }
 

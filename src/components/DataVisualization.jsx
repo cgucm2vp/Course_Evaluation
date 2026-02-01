@@ -1,4 +1,5 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LabelList } from 'recharts';
+
 import './DataVisualization.css';
 
 function DataVisualization({ stats }) {
@@ -30,24 +31,36 @@ function DataVisualization({ stats }) {
                 <div className="stat-card">
                     <div className="stat-icon" style={{ background: 'var(--color-primary-light)' }}>🍭</div>
                     <div className="stat-info">
-                        <div className="stat-label">甜度 ({stats.sweetnessCount}人)</div>
-                        <div className="stat-value">{stats.sweetness.toFixed(1)} <small>/ 5</small></div>
+                        <div className="stat-label">
+                            <div>甜度</div>
+                            <small>({stats.sweetnessCount}人)</small>
+                        </div>
+                        <div className="stat-value">{stats.sweetness.toFixed(1)} / 5</div>
                     </div>
                 </div>
 
                 <div className="stat-card">
                     <div className="stat-icon" style={{ background: 'var(--color-bg-secondary)' }}>❄️</div>
                     <div className="stat-info">
-                        <div className="stat-label">涼度 ({stats.coolnessCount}人)</div>
-                        <div className="stat-value">{stats.coolness.toFixed(1)} <small>/ 5</small></div>
+                        <div className="stat-label">
+                            <div>涼度</div>
+                            <small>({stats.coolnessCount}人)</small>
+                        </div>
+                        <div className="stat-value">{stats.coolness.toFixed(1)} / 5</div>
                     </div>
                 </div>
 
                 <div className="stat-card">
                     <div className="stat-icon" style={{ background: 'var(--color-primary-light)', filter: 'hue-rotate(120deg)' }}>📚</div>
                     <div className="stat-info">
-                        <div className="stat-label">有料程度 ({stats.richnessCount}人)</div>
-                        <div className="stat-value">{stats.richness.toFixed(1)} <small>/ 5</small></div>
+                        <div className="stat-label">
+                            <div>有料程度</div>
+                            <small>({stats.richnessCount}人)</small>
+                        </div>
+                        <div className="stat-value">{stats.richness.toFixed(1)} / 5</div>
+
+
+
                     </div>
                 </div>
 
@@ -89,7 +102,10 @@ function DataVisualization({ stats }) {
                                 dataKey="value"
                                 radius={[4, 4, 0, 0]}
                                 barSize={60}
-                            />
+                            >
+                                <LabelList dataKey="value" position="top" formatter={(val) => val.toFixed(1)} />
+                            </Bar>
+
                         </BarChart>
                     </ResponsiveContainer>
                     <p className="chart-hint">※ 滑鼠移至長條上方可查看各維度獨立樣本數</p>

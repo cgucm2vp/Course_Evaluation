@@ -1,40 +1,85 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import config from '../config';
 import CourseCard from '../components/CourseCard';
 import MetricsGuideModal from '../components/MetricsGuideModal';
 import DisclaimerModal from '../components/DisclaimerModal';
 import Footer from '../components/Footer';
+import SettingsModal from '../components/SettingsModal';
+import MessageBox from '../components/MessageBox';
+import LegendaryEffect from '../components/LegendaryEffect';
 import './SearchPage.css';
 
 function SearchPage() {
     const [user, setUser] = useState(null);
-    const [filters, setFilters] = useState({
-        keyword: '',
-        teacher: '',
-        year: '',
-        category: '',
-        subcategory: ''
+    const [rememberFilters, setRememberFilters] = useState(localStorage.getItem('remember_search_filters') === 'true');
+    const [filters, setFilters] = useState(() => {
+        const saved = localStorage.getItem('saved_search_filters');
+        const shouldRemember = localStorage.getItem('remember_search_filters') === 'true';
+        if (shouldRemember && saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error("Failed to parse saved filters:", e);
+            }
+        }
+        return {
+            keyword: '',
+            teacher: '',
+            year: '',
+            category: '',
+            subcategory: ''
+        };
     });
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState(() => {
+        const saved = localStorage.getItem('saved_search_results');
+        const shouldRemember = localStorage.getItem('remember_search_filters') === 'true';
+        return (shouldRemember && saved) ? JSON.parse(saved) : [];
+    });
+    const [searched, setSearched] = useState(() => {
+        const shouldRemember = localStorage.getItem('remember_search_filters') === 'true';
+        return shouldRemember && localStorage.getItem('saved_search_status') === 'true';
+    });
     const [hotCourses, setHotCourses] = useState([]);
+    const [hotLoading, setHotLoading] = useState(false);
     const [courseMapping, setCourseMapping] = useState({});
     const [loading, setLoading] = useState(false);
-    const [searched, setSearched] = useState(false);
+    const [isRandomLoading, setIsRandomLoading] = useState(false);
     const [useDropdown, setUseDropdown] = useState(true);
     const [showGuideModal, setShowGuideModal] = useState(false);
     const [showDisclaimer, setShowDisclaimer] = useState(false);
+    const [showLegendary, setShowLegendary] = useState(null); // 存儲目前觸發的醫師資料
+    const [activeEasterEggTheme, setActiveEasterEggTheme] = useState(null);
+    const [msgBox, setMsgBox] = useState({ isOpen: false, type: 'info', message: '' });
+    const [showSettings, setShowSettings] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const suggestionRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
-        // 檢查登入狀態
-        const userData = localStorage.getItem(config.STORAGE_KEYS.USER);
+        // 檢查登入狀態 (改用 sessionStorage)
+        const userData = sessionStorage.getItem(config.STORAGE_KEYS.USER);
         if (!userData) {
+            console.warn("No user data found in sessionStorage, redirecting to login.");
             navigate('/');
             return;
         }
-        setUser(JSON.parse(userData));
+
+        try {
+            const parsedUser = JSON.parse(userData);
+            if (!parsedUser) throw new Error("Parsed user is null");
+            setUser(parsedUser);
+            console.log("Logged in user:", parsedUser);
+        } catch (err) {
+            console.error("Auth state corruption:", err, "Data:", userData);
+            sessionStorage.removeItem(config.STORAGE_KEYS.USER);
+            navigate('/');
+            return;
+        }
 
         // 檢查是否已確認過保密聲明
         const hasConfirmed = sessionStorage.getItem('hasConfirmedDisclaimer');
@@ -47,17 +92,35 @@ function SearchPage() {
         loadCourseMapping();
     }, [navigate]);
 
+    // 儲存偏好設定
+    useEffect(() => {
+        localStorage.setItem('remember_search_filters', rememberFilters);
+        if (rememberFilters) {
+            localStorage.setItem('saved_search_filters', JSON.stringify(filters));
+            localStorage.setItem('saved_search_results', JSON.stringify(results));
+            localStorage.setItem('saved_search_status', searched);
+        } else {
+            localStorage.removeItem('saved_search_filters');
+            localStorage.removeItem('saved_search_results');
+            localStorage.removeItem('saved_search_status');
+        }
+    }, [filters, rememberFilters, results, searched]);
+
     const handleDisclaimerConfirm = () => {
         sessionStorage.setItem('hasConfirmedDisclaimer', 'true');
         setShowDisclaimer(false);
     };
 
+
     const loadHotCourses = async () => {
+        setHotLoading(true);
         const result = await api.getHotCourses();
         if (result.success) {
             setHotCourses(result.data || []);
         }
+        setHotLoading(false);
     };
+
 
     const loadCourseMapping = async () => {
         const result = await api.getCourseMapping();
@@ -66,10 +129,97 @@ function SearchPage() {
         }
     };
 
+    // 將巢狀的課程映射展平，方便搜尋建議使用
+    const flattenedCourses = useMemo(() => {
+        const flat = [];
+        Object.entries(courseMapping).forEach(([catName, catData]) => {
+            // 處理直接隸屬於母分類的課程
+            if (catData.direct) {
+                catData.direct.forEach(course => {
+                    flat.push({ name: course.name, category: catName, subcategory: '' });
+                });
+            }
+            // 處理子分類下的課程
+            if (catData.sub) {
+                Object.entries(catData.sub).forEach(([subName, subCourses]) => {
+                    subCourses.forEach(course => {
+                        flat.push({ name: course.name, category: catName, subcategory: subName });
+                    });
+                });
+            }
+        });
+        return flat;
+    }, [courseMapping]);
+
+    // 處理點擊外部關閉建議清單
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleKeywordChange = (value) => {
+        setFilters({ ...filters, keyword: value });
+
+        if (value.trim().length >= 1) {
+            const filtered = flattenedCourses.filter(c =>
+                c.name.toLowerCase().includes(value.toLowerCase())
+            ).slice(0, 8); // 最多顯示 8 個建議
+            setSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    };
+
+    const handleSuggestionClick = (course) => {
+        setFilters({
+            ...filters,
+            keyword: course.name,
+            category: course.category,
+            subcategory: course.subcategory
+        });
+        setSuggestions([]);
+        setShowSuggestions(false);
+    };
+
     const handleSearch = async (e) => {
         e.preventDefault();
         setLoading(true);
         setSearched(true);
+
+        // 彩蛋 3：傳奇人物搜尋
+        const doctors = {
+            '華佗': { title: '神醫', dialog: '診脈看你有醫緣，是在找我嗎？記得要把這張符收好。', seal: 'PASS' },
+            '李時珍': { title: '醫聖', dialog: '《本草綱目》記載：好學之人必有善報。你是在找尋智慧嗎？', seal: 'PASS' },
+            '扁鵲': { title: '醫祖', dialog: '良藥苦口利於病，忠言逆耳利於行。我在這裡守護你的學業。', seal: 'PASS' },
+            '張仲景': { title: '醫聖', dialog: '固護元氣，本學期必當心想事成！', seal: 'PASS' },
+            '孫思邈': { title: '藥王', dialog: '大醫精誠，看你求學心切，且受我一帖必過方！', seal: 'PASS' }
+        };
+
+        const keyword = filters.keyword + filters.teacher;
+        const matched = Object.keys(doctors).find(name => keyword.includes(name));
+
+        if (matched) {
+            setActiveEasterEggTheme('traditional');
+            setShowLegendary({ ...doctors[matched], name: matched });
+        } else if (filters.keyword === '算命') {
+            window.dispatchEvent(new CustomEvent('trigger-easter-egg', { detail: { type: 'fortune' } }));
+            setActiveEasterEggTheme(null);
+            setShowLegendary(null);
+        } else if (filters.keyword === '魔法') {
+            window.dispatchEvent(new CustomEvent('trigger-easter-egg', { detail: { type: 'magic' } }));
+            setActiveEasterEggTheme(null);
+            setShowLegendary(null);
+        } else {
+            setActiveEasterEggTheme(null);
+            setShowLegendary(null);
+        }
 
         // 如果母分類與課程名稱都選了，就不進行合併
         const searchParams = { ...filters };
@@ -97,7 +247,7 @@ function SearchPage() {
         if (result.success) {
             setResults(result.data || []);
         } else {
-            alert(result.message || '搜尋失敗');
+            setMsgBox({ isOpen: true, type: 'error', message: result.message || '搜尋失敗' });
         }
 
         setLoading(false);
@@ -105,20 +255,30 @@ function SearchPage() {
 
     const handleRandomRecommend = async () => {
         setLoading(true);
-        const result = await api.getRandomCourses();
+        setIsRandomLoading(true);
+        setSearched(true); // 立即設為 true，以便顯示載入動畫
+
+        // 依照目前選擇的分類進行隨機推薦
+        const randomParams = {
+            category: filters.category,
+            subcategory: filters.subcategory
+        };
+        const result = await api.getRandomCourses(randomParams);
 
         if (result.success) {
             setResults(result.data || []);
-            setSearched(true);
         } else {
-            alert(result.message || '取得隨機推薦失敗');
+            setMsgBox({ isOpen: true, type: 'error', message: result.message || '取得隨機推薦失敗' });
         }
 
         setLoading(false);
+        setIsRandomLoading(false);
     };
 
+
+
     const handleLogout = () => {
-        localStorage.removeItem(config.STORAGE_KEYS.USER);
+        sessionStorage.removeItem(config.STORAGE_KEYS.USER);
         sessionStorage.removeItem('hasConfirmedDisclaimer');
         navigate('/');
     };
@@ -162,14 +322,20 @@ function SearchPage() {
     const availableCourses = getAvailableCourses();
 
     return (
-        <div className="search-page">
+        <div className={`search-page ${activeEasterEggTheme ? `theme-${activeEasterEggTheme}` : ''}`}>
             <header className="search-header">
                 <div className="container">
-                    <div className="header-content">
-                        <h1 className="header-title">課程指引與評鑑查詢系統</h1>
-                        <div className="header-actions">
-                            <span className="user-name">歡迎，{user?.name}</span>
-                            <button onClick={handleLogout} className="btn btn-ghost">登出</button>
+                    <div className="header-top">
+                        <h1 className="header-title">修課指引與評鑑查詢系統</h1>
+                        <button className="mobile-menu-toggle" onClick={() => setShowMobileMenu(!showMobileMenu)}>
+                            {showMobileMenu ? '✕ 關閉選單' : '☰ 展開更多功能'}
+                        </button>
+                        <div className={`user-controls ${showMobileMenu ? 'mobile-show' : ''}`}>
+                            <span className="user-name"><span className="welcome-text">歡迎，</span>{user?.name}</span>
+                            <button onClick={() => { navigate('/submit', { state: { from: location.pathname } }); setShowMobileMenu(false); }} className="btn btn-ghost">填寫評鑑</button>
+                            <button onClick={() => { navigate('/resources'); setShowMobileMenu(false); }} className="btn btn-ghost">相關連結與下載</button>
+                            <button onClick={() => { setShowSettings(true); setShowMobileMenu(false); }} className="btn btn-ghost">帳戶設定</button>
+                            <button onClick={handleLogout} className="btn btn-ghost logout-btn">登出</button>
                         </div>
                     </div>
                 </div>
@@ -214,7 +380,7 @@ function SearchPage() {
                                 <div className="form-group">
                                     <div className="label-with-mode">
                                         <label className="form-label">課程名稱</label>
-                                        {filters.category && courseMapping[filters.category]?.sub && Object.keys(courseMapping[filters.category].sub).length > 0 && !filters.subcategory && (
+                                        {filters.category && (
                                             <button
                                                 type="button"
                                                 className="mode-toggle-btn"
@@ -227,14 +393,33 @@ function SearchPage() {
                                             </button>
                                         )}
                                     </div>
-                                    {((!filters.category) || (filters.category && courseMapping[filters.category]?.sub && Object.keys(courseMapping[filters.category].sub).length > 0 && !filters.subcategory && !useDropdown)) ? (
-                                        <input
-                                            type="text"
-                                            className="input"
-                                            value={filters.keyword}
-                                            onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
-                                            placeholder="輸入關鍵字"
-                                        />
+                                    {(!useDropdown || !filters.category) ? (
+                                        <div className="keyword-input-wrapper" ref={suggestionRef}>
+                                            <input
+                                                type="text"
+                                                className="input"
+                                                value={filters.keyword}
+                                                onChange={(e) => handleKeywordChange(e.target.value)}
+                                                onFocus={() => filters.keyword.trim().length >= 1 && setShowSuggestions(true)}
+                                                placeholder="請輸入課程名稱"
+                                            />
+                                            {showSuggestions && suggestions.length > 0 && (
+                                                <ul className="search-suggestions">
+                                                    {suggestions.map((course, idx) => (
+                                                        <li
+                                                            key={idx}
+                                                            onClick={() => handleSuggestionClick(course)}
+                                                            className="suggestion-item"
+                                                        >
+                                                            <span className="suggestion-name">{course.name}</span>
+                                                            <span className="suggestion-path">
+                                                                {course.category} {course.subcategory && `> ${course.subcategory}`}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
                                     ) : (
                                         <select
                                             className="input"
@@ -276,9 +461,21 @@ function SearchPage() {
                                 </div>
                             </div>
 
+                            <div className="form-options">
+                                <label className="remember-filters-label">
+                                    <input
+                                        type="checkbox"
+                                        className="remember-checkbox"
+                                        checked={rememberFilters}
+                                        onChange={(e) => setRememberFilters(e.target.checked)}
+                                    />
+                                    <span>記住搜尋分類</span>
+                                </label>
+                            </div>
+
                             <div className="form-actions">
                                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                                    {loading ? '搜尋中...' : '搜尋課程'}
+                                    {loading && !isRandomLoading ? '搜尋中...' : '搜尋課程'}
                                 </button>
                                 <button
                                     type="button"
@@ -286,7 +483,7 @@ function SearchPage() {
                                     className="btn btn-secondary"
                                     disabled={loading}
                                 >
-                                    隨機推薦
+                                    {isRandomLoading ? '推薦中...' : '隨機推薦'}
                                 </button>
                             </div>
                         </form>
@@ -317,29 +514,46 @@ function SearchPage() {
                     </div>
 
                     {/* 熱門課程推薦 */}
-                    {!searched && hotCourses.length > 0 && (
+                    {!searched && (
                         <div className="hot-section fade-in">
                             <h2 className="section-title">🔥 熱門課程</h2>
-                            <div className="course-grid">
-                                {hotCourses.map((course, index) => (
-                                    <CourseCard
-                                        key={index}
-                                        course={course}
-                                        onClick={() => handleCourseClick(course)}
-                                        showViewCount={true}
-                                    />
-                                ))}
-                            </div>
+                            {hotLoading ? (
+                                <div className="loading-state">
+                                    <div className="loader"></div>
+                                    <p>🔍 正在載入熱門課程...</p>
+                                </div>
+                            ) : hotCourses.length > 0 ? (
+                                <div className="course-grid">
+                                    {hotCourses.map((course, index) => (
+                                        <CourseCard
+                                            key={index}
+                                            course={course}
+                                            onClick={() => handleCourseClick(course)}
+                                            showViewCount={true}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="empty-state">
+                                    <p>目前暫無熱門課程資料</p>
+                                </div>
+                            )}
                         </div>
                     )}
+
 
                     {/* 搜尋結果 */}
                     {searched && (
                         <div className="results-section fade-in">
                             <h2 className="section-title">
-                                搜尋結果 <span className="result-count">({results.length} 筆)</span>
+                                搜尋結果 <span className="result-count">({loading ? '...' : results.length} 筆)</span>
                             </h2>
-                            {results.length > 0 ? (
+                            {loading ? (
+                                <div className="loading-state">
+                                    <div className="loader"></div>
+                                    <p>{isRandomLoading ? '🎲 正在隨機推薦課程，請稍候...' : '🔍 資料查詢中，請稍候...'}</p>
+                                </div>
+                            ) : results.length > 0 ? (
                                 <div className="course-grid">
                                     {results.map((course, index) => (
                                         <CourseCard
@@ -357,6 +571,7 @@ function SearchPage() {
                             )}
                         </div>
                     )}
+
                 </div>
             </main>
 
@@ -368,6 +583,24 @@ function SearchPage() {
             <DisclaimerModal
                 isOpen={showDisclaimer}
                 onConfirm={handleDisclaimerConfirm}
+            />
+
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                username={user?.username}
+            />
+
+            <MessageBox
+                isOpen={msgBox.isOpen}
+                type={msgBox.type}
+                message={msgBox.message}
+                onClose={() => setMsgBox({ ...msgBox, isOpen: false })}
+            />
+
+            <LegendaryEffect
+                doctor={showLegendary}
+                onClose={() => setShowLegendary(null)}
             />
 
             <Footer />

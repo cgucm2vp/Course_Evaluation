@@ -1,61 +1,96 @@
 .submit-page {
     min-height: 100vh;
     background-color: var(--color-bg);
-    padding: 6rem 1rem 8rem;
-    /* 增加頂部間距確保按鈕不被遮擋，增加底部緩衝 */
     color: var(--color-text);
 }
 
-.submit-header {
-    max-width: 800px;
-    margin: 0 auto 2.5rem;
-    text-align: center;
-    position: relative;
+/* 統一 Header 樣式 */
+.submit-simple-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-lg) 0;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-xl);
 }
 
-.submit-back-btn {
-    position: absolute;
-    left: 0;
-    top: -2.5rem;
-    /* 增加與標題的垂直差距 */
-    background: none;
-    border: none;
+.submit-simple-header .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    /* 移除強制的全域置中，讓各組件可獨立對齊 */
+}
+
+/* 返回按鈕 - 電腦版左對齊 */
+.submit-back-btn-pill {
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-bg-secondary) 100%);
+    border: 1px solid var(--color-border);
     color: var(--color-primary);
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
-    transition: transform 0.2s;
-    font-size: 0.95rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: var(--spacing-md);
+    padding: 0.6rem 1.4rem;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.submit-back-btn:hover {
-    transform: translateX(-4px);
+.submit-back-btn-pill:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(var(--color-primary-rgb), 0.2);
+    border-color: var(--color-primary);
 }
 
-.submit-header h1 {
+.submit-back-btn-pill::before {
+    content: '←';
+    transition: transform 0.3s ease;
+}
+
+.submit-back-btn-pill:hover::before {
+    transform: translateX(-3px);
+}
+
+.submit-header-content {
+    margin-top: var(--spacing-xs);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 標題內容置中 */
+}
+
+.submit-title {
     font-size: 2.2rem;
     color: var(--color-primary);
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+    text-align: center;
 }
 
-.subtitle {
+.submit-subtitle {
     font-style: italic;
     color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    text-align: center;
 }
 
 .submit-container {
-    max-width: 801px;
-    /* 微調以對齊邊緣 */
+    max-width: 800px;
     margin: 0 auto 5rem;
-    /* 增加底部間距以利 Footer 顯示 */
+    padding: 0 var(--spacing-lg);
 }
 
 .submit-form {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     padding: 3rem;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-xl);
 }
 
 .form-section {
@@ -65,11 +100,66 @@
 .form-section h3 {
     border-left: 5px solid var(--color-primary);
     padding-left: 1.2rem;
-    margin-bottom: 2rem;
+    margin: 0 0 1.5rem;
+    /* 增加下方間距 */
     font-size: 1.5rem;
     color: var(--color-primary);
     display: flex;
     align-items: center;
+}
+
+/* 標題與按鈕併排樣式 */
+.section-title-inline {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.section-title-inline h3 {
+    margin-bottom: 0 !important;
+    /* 移除底邊距以利垂直居中對齊 text */
+}
+
+.help-link-inline {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.help-link-inline:hover {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+.emoji-guide-btn-inline {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.emoji-guide-btn-inline:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: rotate(360deg) scale(1.1);
 }
 
 .form-grid {
@@ -88,6 +178,44 @@
 .form-group label {
     font-weight: 600;
     font-size: 1rem;
+    color: var(--color-text);
+}
+
+.label-with-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.inline-status-badges {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.badge-pill {
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-pill.success {
+    background: #e6fffa;
+    color: #38b2ac;
+    border: 1px solid #38b2ac;
+}
+
+.badge-pill.info {
+    background: #ebf8ff;
+    color: #3182ce;
+    border: 1px solid #3182ce;
+}
+
+.badge-pill.warning {
+    background: #fffaf0;
+    color: #dd6b20;
+    border: 1px solid #dd6b20;
 }
 
 .required {
@@ -95,42 +223,18 @@
     margin-left: 4px;
 }
 
-/* Error States */
-.error-ring {
-    border-color: var(--color-error) !important;
-    background-color: #fffafa !important;
-}
-
-.error-text {
-    color: var(--color-error);
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-top: 2px;
-}
-
-.metrics-error-border {
-    border: 2px solid var(--color-error-light);
-    border-radius: 8px;
-    padding: 0.5rem;
-}
-
-.error-center {
-    text-align: center;
-    margin-top: 1rem;
-}
-
 input,
 select,
 textarea {
-    padding: 0.8rem 1.2rem;
+    padding: 0.9rem 1.1rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     font-family: inherit;
     font-size: 1rem;
-    background-color: #fff;
-    transition: all var(--transition-base);
-    min-height: 48px;
-    /* 統一最小高度 */
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 input:focus,
@@ -138,328 +242,210 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-primary-light);
+    box-shadow: 0 0 0 4px var(--color-primary-light);
+    transform: translateY(-1px);
 }
 
-/* Conflict Dialog (課程相符建議) */
-.conflict-dialog {
-    background: #fff9f0;
-    border: 1px solid #ffeeba;
-    border-radius: 10px;
+/* 衝突建議對話框重新設計 */
+.conflict-suggestion-card {
+    background: white;
+    border: 2px solid var(--color-primary-light);
+    border-radius: var(--radius-lg);
+    margin: 2rem 0;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.suggestion-badge {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.suggestion-content {
     padding: 1.5rem;
-    margin: -1rem 0 2.5rem;
-    box-shadow: var(--shadow-sm);
 }
 
-.border-accent {
-    border-left: 6px solid var(--color-accent);
-}
-
-.conflict-header {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.8rem;
-    color: #856404;
-}
-
-.conflict-header h4 {
-    margin: 0;
+.suggestion-content h4 {
+    margin: 0 0 0.5rem;
+    color: var(--color-primary);
     font-size: 1.1rem;
 }
 
-.conflict-dialog p {
+.suggestion-content p {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-secondary);
     font-size: 0.95rem;
     line-height: 1.5;
-    margin-bottom: 1.2rem;
 }
 
-.dialog-btns {
+.suggestion-actions {
     display: flex;
-    flex-wrap: wrap;
     gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* 按鈕置中 */
 }
 
-.dialog-btns button {
-    padding: 0.5rem 1.2rem;
-    border-radius: 6px;
-    border: 1px solid var(--color-primary);
-    background: white;
-    color: var(--color-primary);
+.action-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.dialog-btns button:hover {
+.action-btn.primary {
     background: var(--color-primary);
     color: white;
+    border: none;
 }
 
-.dialog-btns .btn-secondary {
-    border-color: #ced4da;
-    color: #495057;
+.action-btn.secondary {
+    background: #f0f0f0;
+    color: #666;
+    border: none;
 }
 
-/* Metrics Grid */
+.action-btn.outline {
+    background: white;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Teacher Lookup & Semester Reset Buttons */
+.teacher-lookup-row,
+.semester-wheel-picker {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.lookup-btn,
+.reset-sem-btn {
+    background: white;
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    padding: 0 1.2rem;
+    height: 48px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.lookup-btn:hover,
+.reset-sem-btn:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Metrics Grid - 修正電腦版溢出 */
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 1.2rem;
+    width: 100%;
 }
 
 .metric-item {
     background: var(--color-bg-secondary);
-    padding: 1.5rem 1rem;
-    border-radius: 8px;
+    padding: 1.5rem 0.8rem;
+    border-radius: var(--radius-lg);
     text-align: center;
     border: 1px dashed var(--color-border);
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    min-width: 0;
+    /* 防止溢出 */
 }
 
-.metric-item.highlightable:hover {
+.metric-item:hover {
     background: var(--color-surface);
-    border: 1px solid var(--color-accent);
+    border-style: solid;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
 }
 
 .metric-label {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--color-text);
+    font-size: 1rem;
+    color: var(--color-primary);
+    white-space: nowrap;
 }
 
 .rating-stars {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.3rem;
+    margin-bottom: 0.8rem;
 }
 
 .star-icon {
-    font-size: 2rem;
+    font-size: 1.6rem;
     color: #e2e8f0;
     cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .star-icon.active {
     color: var(--color-accent);
-}
-
-.star-icon:hover {
-    color: var(--color-accent);
-    transform: scale(1.15);
+    transform: scale(1.1);
 }
 
 .metric-detail-hint {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--color-text-tertiary);
     line-height: 1.4;
-}
-
-/* Teacher Lookup Layout */
-.label-with-hint {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.label-with-hint.compact {
-    justify-content: flex-start;
-    gap: 0.8rem;
-}
-
-.status-badges {
-    display: flex;
-    gap: 0.4rem;
-}
-
-.status-badge {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 30px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.status-badge.success {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-.status-badge.info {
-    background: #dbeafe;
-    color: #1e40af;
-    border: 1px solid #bfdbfe;
-}
-
-.status-badge.warning {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
-}
-
-.teacher-lookup-row {
-    display: flex;
-    gap: 0.6rem;
-}
-
-.teacher-input.select-mode {
-    border: 2px solid var(--color-primary);
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    font-weight: 700;
-}
-
-.lookup-btn {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    padding: 0 1.2rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    color: var(--color-primary);
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 48px;
-    white-space: nowrap;
-    min-width: 100px;
-}
-
-.lookup-btn:hover:not(:disabled) {
-    background: var(--color-primary);
-    color: white;
-}
-
-/* Semester Picker */
-.semester-wheel-picker {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.year-input {
-    width: 100px;
-    text-align: center;
-}
-
-.term-select {
-    width: 90px;
-}
-
-.reset-sem-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #6c757d;
-}
-
-/* Indicators */
-.section-title-standard {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    margin-bottom: 2.5rem;
-}
-
-.help-link-block {
-    align-self: center;
-    background: var(--color-bg-secondary);
-    border: 1px dashed var(--color-primary);
-    color: var(--color-primary);
-    padding: 0.7rem 2.5rem;
-    border-radius: 40px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.help-link-block:hover {
-    background: var(--color-primary-light);
-    transform: scale(1.02);
-}
-
-.section-title-with-guide {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 2rem;
-}
-
-.section-title-with-guide h3 {
-    margin-bottom: 0 !important;
-}
-
-.emoji-guide-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-    line-height: normal;
-}
-
-.emoji-guide-btn:hover {
-    transform: rotate(15deg) scale(1.2);
+    display: block;
 }
 
 /* Footer Section */
 .submit-footer-centered {
-    margin-top: -0.5rem;
-    /* 負向 margin 讓條款更靠近上方 TextArea */
+    margin-top: 0;
+    /* 縮短與上方間距 */
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-}
-
-.submit-notice-centered {
+    align-items: center;
     width: 100%;
-    margin-bottom: 1.5rem;
-    background: var(--color-bg-secondary);
-    padding: 1.2rem;
-    border-radius: 12px;
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
-    text-align: center;
-    /* 將內部的感謝文字改為置中 */
 }
 
-/* 條款勾選樣式 */
 .terms-container {
+    width: 100%;
+    margin: 0.2rem 0 1.2rem;
+    /* 顯著縮短與上方心得輸入框的間距 */
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    margin: 0 0 1.2rem;
-    /* 移除頂部 margin 讓它貼近 textarea */
-    align-items: flex-start;
-    width: 100%;
+    gap: 0.6rem;
+    text-align: left;
 }
 
 .term-checkbox-label {
     display: flex;
-    align-items: center;
-    /* 改為置中對齊 */
+    align-items: flex-start;
     gap: 0.8rem;
     cursor: pointer;
-    font-size: 0.95rem;
-    color: var(--color-text);
-    text-align: left;
-    padding: 0.4rem 0;
-    transition: color 0.2s;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    padding: 0.5rem 0;
+    /* 移除 block 包裝感 */
+    transition: all 0.2s ease;
 }
 
 .term-checkbox-label:hover {
@@ -467,71 +453,115 @@ textarea:focus {
 }
 
 .term-checkbox-label input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
     accent-color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.error-block-centered {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.error-text {
+    color: var(--color-error);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .error-text.centered {
     text-align: center;
     width: 100%;
-    margin-top: 0.5rem;
+}
+
+.submit-notice-centered {
+    width: 100%;
+    background: #fff8eb;
+    border: 1px solid #ffeeba;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    margin: 1.5rem 0;
+    text-align: center;
 }
 
 .notice {
+    color: #856404;
     font-size: 0.95rem;
-    color: var(--color-text-secondary);
-    font-weight: 500;
-    line-height: 1.8;
+    line-height: 1.6;
+    margin: 0;
 }
 
 .submit-btn {
     background: var(--gradient-primary);
     color: white;
     border: none;
-    padding: 1.1rem 6rem;
+    padding: 1.25rem 6.5rem;
     font-size: 1.2rem;
     font-weight: 700;
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: var(--shadow-md);
-    margin: 1rem auto 0;
-    /* 按鈕本身維持水平居中，但上方間距縮小 */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 25px rgba(var(--color-primary-rgb), 0.3);
+    margin: 0.5rem auto 0;
     display: block;
 }
 
-.submit-page {
-    min-height: 100vh;
-    background-color: var(--color-bg);
-    padding: 6rem 1rem 2rem;
-    /* 回歸正常的底部 padding */
-    color: var(--color-text);
-}
-
 .submit-btn:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(var(--color-primary-rgb), 0.4);
+    filter: brightness(1.1);
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+/* 行動端優化 */
+@media (max-width: 768px) {
+    .submit-simple-header .container {
+        padding: 0 1.5rem;
+        text-align: left;
+        /* 手機版也靠左 */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .submit-container {
+        padding: 0 1rem;
+    }
+
+    .submit-title {
+        font-size: 1.8rem;
+    }
+
     .submit-form {
         padding: 1.5rem;
+        border-radius: var(--radius-lg);
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
+    .form-grid,
     .metrics-grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
 
     .submit-btn {
         width: 100%;
-        padding: 1rem;
+        padding: 1.1rem;
+    }
+
+    .teacher-lookup-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .lookup-btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .label-with-badges {
+        flex-wrap: wrap;
     }
 }

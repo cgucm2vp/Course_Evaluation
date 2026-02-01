@@ -230,6 +230,158 @@ export default defineConfig({
 2. 檢查瀏覽器開發者工具的 Console 和 Network
 3. 參考 `backend/README.md` 和主 `README.md`
 
----
+## 📚 學涯資源中心維護
+ 
+ 學涯資源中心的所有內容（連結與檔案）均由 `src/config.js` 統一管理。
+ 
+ ### 1. 維護常用相關連結
+ 
+ 編輯 `src/config.js` 中的 `QUICK_LINKS` 物件：
+ 
+ - **修改標題**：更改 `BANNER_LEFT.title` 或 `BANNER_RIGHT.title`。
+ - **修改分類與連結**：在 `GROUPS` 陣列中尋找對應的 `id`，更新 `text` (分類名稱) 或 `links` 陣列中的 `name` 與 `url`。
+ 
+ ```javascript
+ GROUPS: [
+   {
+     id: 1,
+     text: '校內系統',
+     links: [
+       { name: '校園入口網', url: '...' },
+       // ...
+     ]
+   },
+   // ...
+ ]
+ ```
+ 
+ ### 2. 維護文件下載檔案櫃
+ 
+ 編輯 `src/config.js` 中的 `FILE_CABINET` 陣列：
+ 
+ - **新增分類**：在陣列中新增一個物件，包含 `category` 和 `files`。
+ - **新增/修改檔案**：在 `files` 陣列中更新檔案屬性：
+   - `id`: 唯一的 ID
+   - `name`: 顯示的檔案名稱
+   - `type`: 'PDF', 'DOCX', 'LINK', 'VIDEO', 'WEB', 'EGG' (EGG 為彩蛋)。
+   - `size`: 顯示的檔案大小 (如 '1.2 MB')
+   - `url`: 檔案的下載連結 (建議使用 Google Drive 共享連結)
+ 
+ ```javascript
+ {
+   category: '教學文件',
+   files: [
+     { id: 1, name: '選課手冊', type: 'PDF', size: '2.5 MB', url: '...' },
+     // ...
+   ]
+ }
+ ```
+ 
+ **注意**：檔案櫃目前設計為垂直排列，且每個分類分頁顯示 5 個檔案（超過 5 個會自動出現「上頁/下頁」按鈕）。
+ 
+ ---
+ 
+ ## 🎡 彩蛋系統維護
+ 
+ 系統目前內建數個互動彩蛋，維護方式如下：
+ 
+ ### 1. 搜尋「傳奇醫學教師」
+ 當使用者在搜尋頁面的「關鍵字」或「老師姓名」輸入特定人名時，會觸發傳統風格的彩蛋對話框。
+ 
+ - **程式碼位置**：`src/pages/SearchPage.jsx` 中的 `handleSearch` 函式。
+ - **如何新增**：在 `doctors` 物件中新增 key 值（老師姓名）及其對應的 `title` (稱號), `dialog` (對話內容)。
+ - **顯示邏輯**：系統會自動根據 `activeEasterEggTheme` 切換佈局與樣式，UI 元件定義在 `SearchPage.jsx` 的底部 `LegendaryDisplay` 區塊。
+ 
+ ### 2. 深夜醫師提醒 (Midnight Assistant)
+ 在凌晨 1 點至 5 點間，頁面右下角會出現「熬夜提醒」。
+ 
+ - **邏輯控制**：`src/components/MidnightAssistant.jsx`。
+ - **顯示規則**：採用「看過即消失」策略。使用者點擊展開醫生訊息後，系統會在 `localStorage` 寫入 `midnight_egg_viewed`，此後將不再顯示。
+ 
+ ### 3. 進階全螢幕彩蛋 (Special Easter Eggs)
+ 本系統擁有一套全螢幕特效彩蛋，由 `src/components/SpecialEasterEggs.jsx` 統一管理。
+ 
+ - **觸發方式**：各分頁透過 `window.dispatchEvent(new CustomEvent('trigger-easter-egg', { detail: { type: '類別' } }))` 來進行全域觸發。
+ 
+ | 分類 | 觸發條件 | 維護建議 |
+ |------|----------|----------|
+ | `fortune` (算命) | 搜尋關鍵字「算命」 | 可在 `SpecialEasterEggs.jsx` 中的 `FORTUNES` 陣列修改籤詩內容。 |
+ | `magic` (魔法) | 搜尋關鍵字「魔法」 | 樣式定義在 `SpecialEasterEggs.css` 的 `.magic-circle` 相關區塊。 |
+ | `achievement` (學富五車) | 累計瀏覽 10 個不同課程 | 追蹤邏輯在 `CourseDetailPage.jsx` 的 `useEffect` 中。 |
+ | `speed` (點太快) | 1 秒內切換 5 次評論 | 防灌水/惡作劇提醒，邏輯在 `CourseDetailPage.jsx` 的 `handleSwitchLogic`。 |
+ 
+ ### 4. 持續提交獎勵
+ 在提交評價頁面，若使用者在同一 Session 內連續成功提交 5 筆評價，會觸發特殊慶祝動畫。
+ 
+ - **程式碼位置**：`src/pages/SubmitPage.jsx`。
+ 
+ ### 4. 傳奇人物彩蛋圖片維護 (Legendary Portraits)
+當使用者在搜尋頁面搜尋特定名醫（如「華佗」）時，會觸發全螢幕特效。
 
-最後更新：2026-01-17
+- **圖片存放位置**：`src/assets/legends/`
+- **修改對應關係**：編輯 `src/components/LegendaryEffect.jsx` 中的 `mapping` 物件。
+- **新增人物步驟**：
+  1. 將 `.png` 檔案放入 `src/assets/legends/`（建議使用透明背景的圖片）。
+  2. 在 `src/pages/SearchPage.jsx` 的 `doctors` 列表新增人物名稱與對白。
+  3. 在 `src/components/LegendaryEffect.jsx` 的 `mapping` 中加入 `名稱: '檔名.png'`。
+
+---
+ 
+ ## 📧 修改系統信件內容 (Email Templates)
+ 系統發送的信件（如：重設密碼、修改備援信箱、異常回報通知）邏輯皆集中在 `backend/Code.gs` 中。
+ 
+ ### 1. 定義位置
+ 請在 `Code.gs` 中搜尋 `MailApp.sendEmail`，主要分佈在以下函數：
+ 
+ - **重設密碼信件**：`handleForgotPassword` 函數內。
+   - 變數 `subject` 為主旨。
+   - 變數 `body` 為內容。
+ - **備援信箱設定通知**：`handleUpdateProfile` 函數內。
+ - **管理員異常回報通知**：`handleReportIssue` 函數內。
+ 
+ ### 2. 修改範例
+ 若要修改重設密碼的信件內容，請找到以下區塊並編輯字串：
+ ```javascript
+ const subject = `[課程評鑑系統] 密碼重設通知`;
+ const body = `${realName} (${username}) 您好：\n\n您的帳號密碼已成功重設...\n\n新密碼為：${newPassword}...`;
+ ```
+ > [!TIP]
+ > `\n` 代表換行。您可以自由編輯內容，但請確保變數（如 `${newPassword}`）保留在原位，以免使用者收不到新密碼。
+ 
+ ### 3. 套用變更
+ 修改完 `Code.gs` 後，必須：
+ 1. 點擊 Google Apps Script 編輯器右上角的 **「部署」 (Deploy)**。
+ 2. 選擇 **「管理部署」 (Manage deployments)**。
+ 3. 編輯當前版本或建立新版本以套用。
+ 
+ ---
+
+## 🚀 GitHub 部署與版本更新 (Development & Deployment)
+本專案使用 GitHub Actions 進行自動化部署，每次推送程式碼至 GitHub 後，系統會自動建置並發布到 GitHub Pages。
+
+### 1. 更新版本號碼
+在發布重大更動或維護後，建議更新專案版本號以便追蹤。
+- **檔案位置**：`package.json`。
+- **修改欄位**：`version`（建議格式為 `YYYYMMDD.次數v`，例如 `20260201.1v`）。
+
+### 2. 推送更新至 GitHub
+請在終端機執行以下指令：
+```bash
+# 1. 將所有更改加入暫存區
+git add .
+
+# 2. 提交更改，描述您做了什麼
+git commit -m "更新搜尋建議功能與排版優化"
+
+# 3. 推送到 GitHub
+git push origin main
+```
+
+### 3. 查看部署狀態
+- 推送後，前往您的 GitHub Repo 頁面，點擊上方分頁中的 **「Actions」**。
+- 您會看到最新的部署流程正在運行（黃色小圈圈）。
+- 當圖示變為綠色勾勾時，代表網頁已完成更新。
+
+---
+ 
+ 最後更新：2026-02-01
