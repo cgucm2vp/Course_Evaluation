@@ -39,15 +39,15 @@ function MetricsGuideModal({ isOpen, onClose }) {
                                     </tr>
                                     <tr>
                                         <td><span className="score-badge sweetness">4</span></td>
-                                        <td>90 ~ 95 分</td>
+                                        <td>90 ~ 94 分</td>
                                     </tr>
                                     <tr>
                                         <td><span className="score-badge sweetness">3</span></td>
-                                        <td>85 ~ 90 分</td>
+                                        <td>85 ~ 89 分</td>
                                     </tr>
                                     <tr>
                                         <td><span className="score-badge sweetness">2</span></td>
-                                        <td>80 ~ 85 分</td>
+                                        <td>80 ~ 84 分</td>
                                     </tr>
                                     <tr>
                                         <td><span className="score-badge sweetness">1</span></td>
