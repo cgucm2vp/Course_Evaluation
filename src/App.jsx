@@ -6,21 +6,24 @@ import SubmitPage from './pages/SubmitPage';
 import ResourcesPage from './pages/ResourcesPage';
 import MidnightAssistant from './components/MidnightAssistant';
 import SpecialEasterEggs from './components/SpecialEasterEggs';
+import { ConfigProvider } from './ConfigContext';
 
 function App() {
     return (
-        <HashRouter>
-            <Routes>
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/course/:courseName/:teacher" element={<CourseDetailPage />} />
-                <Route path="/submit" element={<SubmitPage />} />
-                <Route path="/resources" element={<ResourcesPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <MidnightAssistant />
-            <SpecialEasterEggs />
-        </HashRouter>
+        <ConfigProvider>
+            <HashRouter>
+                <Routes>
+                    <Route path="/" element={<LoginPage />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/course/:courseName/:teacher" element={<CourseDetailPage />} />
+                    <Route path="/submit" element={<SubmitPage />} />
+                    <Route path="/resources" element={<ResourcesPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+                <MidnightAssistant />
+                <SpecialEasterEggs />
+            </HashRouter>
+        </ConfigProvider>
     );
 }
 

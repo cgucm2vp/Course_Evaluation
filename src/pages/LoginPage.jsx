@@ -5,6 +5,7 @@ import config from '../config';
 import ReportModal from '../components/ReportModal';
 import MessageBox from '../components/MessageBox';
 import PromptModal from '../components/PromptModal';
+import { useAppConfig } from '../ConfigContext';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -17,6 +18,7 @@ function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [msgBox, setMsgBox] = useState({ isOpen: false, type: 'info', message: '' });
     const [promptBox, setPromptBox] = useState({ isOpen: false, title: '', message: '' });
+    const { appConfig } = useAppConfig();
     const navigate = useNavigate();
 
     // 初始化：檢查是否有已儲存的使用者或記住的帳號
@@ -177,7 +179,18 @@ function LoginPage() {
                     >
                         💡 省略登入流程：快速填寫課程評鑑
                     </button>
-                    <a href={config.USER_MANUAL_URL} target="_blank" rel="noopener noreferrer" className="login-manual-link">
+                    <a
+                        href={appConfig.USER_MANUAL_URL || '#'}
+                        target={appConfig.USER_MANUAL_URL ? "_blank" : "_self"}
+                        rel="noopener noreferrer"
+                        className={`login-manual-link ${!appConfig.USER_MANUAL_URL ? 'is-loading' : ''}`}
+                        onClick={(e) => {
+                            if (!appConfig.USER_MANUAL_URL) {
+                                e.preventDefault();
+                                setMsgBox({ isOpen: true, type: 'info', message: '操作手冊連結讀取中，請稍候...' });
+                            }
+                        }}
+                    >
                         📖 下載操作手冊
                     </a>
                     <div className="footer-bottom-row">

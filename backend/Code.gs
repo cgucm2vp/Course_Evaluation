@@ -68,6 +68,9 @@ function handleRequest(e) {
       case 'getResources':
         result = handleGetResources();
         break;
+      case 'getAppConfig':
+        result = handleGetAppConfig();
+        break;
       default:
         result = { success: false, message: '未知的操作：' + action };
     }
@@ -1127,5 +1130,36 @@ function handleGetResources() {
     };
   } catch (error) {
     return { success: false, message: '獲取資源失敗：' + error.toString() };
+  }
+}
+
+/**
+ * 處理獲取全域應用程式設定
+ */
+function handleGetAppConfig() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('APP_CONFIG');
+    const config = {};
+    
+    if (sheet) {
+      const data = sheet.getDataRange().getValues();
+      const rows = data.slice(1);
+      
+      rows.forEach(row => {
+        const key = row[0];
+        const value = row[1];
+        if (key) {
+          config[key] = value;
+        }
+      });
+    }
+    
+    return {
+      success: true,
+      data: config
+    };
+  } catch (error) {
+    return { success: false, message: '獲取設定失敗：' + error.toString() };
   }
 }

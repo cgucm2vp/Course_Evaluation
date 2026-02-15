@@ -1,10 +1,13 @@
 import axios from 'axios';
 import config from '../config';
 
-/**
- * API 服務層
- * 封裝所有與後端的通訊
- */
+const instance = axios.create({
+    baseURL: config.API_BASE_URL,
+    timeout: 10000
+});
+
+// 簡易快取：全域設定只需要抓一次
+let _configPromise = null;
 
 const api = {
     /**
@@ -248,6 +251,31 @@ const api = {
             console.error('Fetch resources error:', error);
             return { success: false, message: '獲取資源失敗，請檢查網路連線' };
         }
+    },
+
+    /**
+     * 獲取全域應用程式設定 (APP_CONFIG)
+     */
+    fetchAppConfig: async () => {
+        if (_configPromise) return _configPromise;
+
+        _configPromise = (async () => {
+            try {
+                const response = await instance.get('', {
+                    params: { action: 'getAppConfig' }
+                });
+                if (response.data && response.data.success) {
+                    return response.data.data;
+                }
+                return null;
+            } catch (error) {
+                console.error('Fetch app config error:', error);
+                _configPromise = null; // 失敗時允許重試
+                return null;
+            }
+        })();
+
+        return _configPromise;
     }
 };
 export default api;

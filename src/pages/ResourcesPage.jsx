@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import SettingsModal from '../components/SettingsModal';
 import MessageBox from '../components/MessageBox';
 import ReportModal from '../components/ReportModal';
+import { useAppConfig } from '../ConfigContext'; // Added this import
 import './ResourcesPage.css';
 
 function ResourcesPage() {
@@ -22,6 +23,7 @@ function ResourcesPage() {
     const [activeAssistant, setActiveAssistant] = useState(null);
     const [assistantTimer, setAssistantTimer] = useState(null);
 
+    const { appConfig } = useAppConfig(); // Added this line
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -67,7 +69,7 @@ function ResourcesPage() {
 
     // 處理失效連結的共用邏輯 (針對明確為 # 或預留的連結)
     const handleInvalidLink = (title, url) => {
-        const prefill = `【連結失效回報】\n資源名稱：${title}\n原始網址：${url || '無'}\n問題描述：點擊後找不到內容或連結已失效。`;
+        const prefill = `【連結失效回報】\n資源名稱：${title} \n原始網址：${url || '無'} \n問題描述：點擊後找不到內容或連結已失效。`;
 
         setMsgBox({
             isOpen: true,
@@ -109,7 +111,7 @@ function ResourcesPage() {
 
     const handleAssistantReport = () => {
         if (!activeAssistant) return;
-        const prefill = `【疑似失效連結回報】\n資源名稱：${activeAssistant.title}\n目標網址：${activeAssistant.url}\n問題描述：點擊後顯示 404 或連線失敗。`;
+        const prefill = `【疑似失效連結回報】\n資源名稱：${activeAssistant.title} \n目標網址：${activeAssistant.url} \n問題描述：點擊後顯示 404 或連線失敗。`;
         setReportModal({ isOpen: true, initialContent: prefill });
         setActiveAssistant(null);
     };
@@ -123,7 +125,7 @@ function ResourcesPage() {
     const renderLinkGroup = (group) => {
         const isExpanded = expandedGroups[group.id] || false;
         return (
-            <div key={group.id} className={`link-group ${isExpanded ? 'is-expanded' : ''}`}>
+            <div key={group.id} className={`link - group ${isExpanded ? 'is-expanded' : ''} `}>
                 <div className="group-header" onClick={() => toggleGroup(group.id)} style={{ cursor: 'pointer' }}>
                     <div className="group-header-left">
                         <span className="group-dot"></span>
@@ -222,7 +224,7 @@ function ResourcesPage() {
                                     const isExpanded = expandedCabinets[idx] || false;
 
                                     return (
-                                        <div key={idx} className={`cabinet-card ${isExpanded ? 'is-expanded' : ''}`}>
+                                        <div key={idx} className={`cabinet - card ${isExpanded ? 'is-expanded' : ''} `}>
                                             <div className="cabinet-category" onClick={() => toggleCabinet(idx)}>
                                                 <span>{cabinet.category} <span className="item-count">({cabinet.files.length})</span></span>
                                                 <span className="cabinet-expand-icon">{isExpanded ? '−' : '+'}</span>
