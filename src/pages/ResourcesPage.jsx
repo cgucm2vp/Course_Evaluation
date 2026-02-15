@@ -125,7 +125,7 @@ function ResourcesPage() {
     const renderLinkGroup = (group) => {
         const isExpanded = expandedGroups[group.id] || false;
         return (
-            <div key={group.id} className={`link - group ${isExpanded ? 'is-expanded' : ''} `}>
+            <div key={group.id} className={`link-group ${isExpanded ? 'is-expanded' : ''}`}>
                 <div className="group-header" onClick={() => toggleGroup(group.id)} style={{ cursor: 'pointer' }}>
                     <div className="group-header-left">
                         <span className="group-dot"></span>
@@ -224,7 +224,7 @@ function ResourcesPage() {
                                     const isExpanded = expandedCabinets[idx] || false;
 
                                     return (
-                                        <div key={idx} className={`cabinet - card ${isExpanded ? 'is-expanded' : ''} `}>
+                                        <div key={idx} className={`cabinet-card ${isExpanded ? 'is-expanded' : ''}`}>
                                             <div className="cabinet-category" onClick={() => toggleCabinet(idx)}>
                                                 <span>{cabinet.category} <span className="item-count">({cabinet.files.length})</span></span>
                                                 <span className="cabinet-expand-icon">{isExpanded ? '−' : '+'}</span>
