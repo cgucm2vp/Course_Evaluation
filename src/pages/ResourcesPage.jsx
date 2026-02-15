@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../config';
+import api from '../services/api';
 import Footer from '../components/Footer';
 import SettingsModal from '../components/SettingsModal';
 import MessageBox from '../components/MessageBox';
@@ -9,6 +10,10 @@ import './ResourcesPage.css';
 
 function ResourcesPage() {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [quickLinks, setQuickLinks] = useState({ BANNER_LEFT: {}, BANNER_RIGHT: {}, GROUPS: [] });
+    const [fileCabinet, setFileCabinet] = useState([]);
+
     const [msgBox, setMsgBox] = useState({ isOpen: false, type: 'info', message: '', actionLabel: '', onAction: null, hideConfirm: false });
     const [reportModal, setReportModal] = useState({ isOpen: false, initialContent: '' });
     const [showSettings, setShowSettings] = useState(false);
@@ -26,7 +31,34 @@ function ResourcesPage() {
             return;
         }
         setUser(JSON.parse(userData));
+        loadResources();
     }, [navigate]);
+
+    const loadResources = async () => {
+        setLoading(true);
+        try {
+            const response = await api.fetchResources();
+            if (response.success && response.data) {
+                setQuickLinks(response.data.quickLinks || { BANNER_LEFT: {}, BANNER_RIGHT: {}, GROUPS: [] });
+                setFileCabinet(response.data.fileCabinet || []);
+
+                // 初始化分頁狀態
+                const initialPages = (response.data.fileCabinet || []).reduce((acc, _, idx) => ({ ...acc, [idx]: 1 }), {});
+                setCabinetPages(initialPages);
+            } else {
+                setMsgBox({
+                    isOpen: true,
+                    type: 'error',
+                    message: response.message || '無法載入資源資料，請稍後再試。',
+                    onClose: () => setMsgBox(prev => ({ ...prev, isOpen: false }))
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load resources:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         sessionStorage.clear();
@@ -83,9 +115,6 @@ function ResourcesPage() {
     };
 
     // 1. 相關連結區塊
-    const leftGroups = config.QUICK_LINKS.GROUPS.filter(g => g.side === 'left');
-    const rightGroups = config.QUICK_LINKS.GROUPS.filter(g => g.side === 'right');
-
     const [expandedGroups, setExpandedGroups] = useState({});
     const toggleGroup = (groupId) => {
         setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
@@ -127,12 +156,10 @@ function ResourcesPage() {
 
     // 2. 檔案櫃區塊
     const FILES_PER_PAGE = 5;
-    const [cabinetPages, setCabinetPages] = useState(
-        config.FILE_CABINET.reduce((acc, _, idx) => ({ ...acc, [idx]: 1 }), {})
-    );
+    const [cabinetPages, setCabinetPages] = useState({});
 
     const handlePageChange = (cabinetIdx, direction) => {
-        setCabinetPages(prev => ({ ...prev, [cabinetIdx]: prev[cabinetIdx] + direction }));
+        setCabinetPages(prev => ({ ...prev, [cabinetIdx]: (prev[cabinetIdx] || 1) + direction }));
     };
 
     const [expandedCabinets, setExpandedCabinets] = useState({});
@@ -152,94 +179,95 @@ function ResourcesPage() {
             </header>
 
             <main className="resources-main container">
-                {/* 1. 常用相關連結 */}
-                <section className="section fade-in">
-                    <div className="section-header-vertical">
-                        <h2 className="section-title">🔗 常用相關連結</h2>
+                {loading ? (
+                    <div className="loading-container" style={{ textAlign: 'center', padding: '100px 0' }}>
+                        <div className="loading-spinner"></div>
+                        <p style={{ marginTop: '20px', color: 'var(--color-text-secondary)' }}>正在從雲端同步資源資料...</p>
                     </div>
-                    <div className="links-vertical-list">
-                        <div className="links-vertical-group">
-                            <div className="links-group-container">
-                                <div className="banner banner-left" style={{ backgroundColor: config.QUICK_LINKS.BANNER_LEFT.color }}>
-                                    <h3>{config.QUICK_LINKS.BANNER_LEFT.title}</h3>
-                                </div>
-                                <div className="links-group-content">
-                                    {leftGroups.map(group => renderLinkGroup(group))}
-                                </div>
+                ) : (
+                    <>
+                        {/* 1. 常用相關連結 */}
+                        <section className="section fade-in">
+                            <div className="section-header-vertical">
+                                <h2 className="section-title">🔗 常用相關連結</h2>
                             </div>
-                        </div>
-                        <div className="links-vertical-group">
-                            <div className="links-group-container">
-                                <div className="banner banner-right" style={{ backgroundColor: config.QUICK_LINKS.BANNER_RIGHT.color }}>
-                                    <h3>{config.QUICK_LINKS.BANNER_RIGHT.title}</h3>
-                                </div>
-                                <div className="links-group-content">
-                                    {rightGroups.map(group => renderLinkGroup(group))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* 2. 文件下載檔案櫃 */}
-                <section className="section fade-in" style={{ animationDelay: '0.2s' }}>
-                    <div className="section-header-vertical">
-                        <h2 className="section-title">📂 文件下載檔案櫃</h2>
-                        <p className="section-subtitle">（僅供參考，實際請依官網公告為主）</p>
-                    </div>
-                    <div className="cabinet-vertical-list">
-                        {config.FILE_CABINET.map((cabinet, idx) => {
-                            const currentPage = cabinetPages[idx] || 1;
-                            const totalPages = Math.ceil(cabinet.files.length / FILES_PER_PAGE);
-                            const startIndex = (currentPage - 1) * FILES_PER_PAGE;
-                            const currentFiles = cabinet.files.slice(startIndex, startIndex + FILES_PER_PAGE);
-                            const isExpanded = expandedCabinets[idx] || false;
-
-                            return (
-                                <div key={idx} className={`cabinet-card ${isExpanded ? 'is-expanded' : ''}`}>
-                                    <div className="cabinet-category" onClick={() => toggleCabinet(idx)}>
-                                        <span>{cabinet.category} <span className="item-count">({cabinet.files.length})</span></span>
-                                        <span className="cabinet-expand-icon">{isExpanded ? '−' : '+'}</span>
+                            <div className="links-vertical-list">
+                                {(quickLinks.SECTIONS || []).map((section, sIdx) => (
+                                    <div key={sIdx} className="links-vertical-group">
+                                        <div className="links-group-container">
+                                            <div className="banner" style={{ backgroundColor: section.color || '#862D2D' }}>
+                                                <h3>{section.title}</h3>
+                                            </div>
+                                            <div className="links-group-content">
+                                                {(section.groups || []).map(group => renderLinkGroup(group))}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="cabinet-content">
-                                        <div className="file-list">
-                                            {currentFiles.map(file => (
-                                                <div key={file.id} className="file-item">
-                                                    <div className="file-info">
-                                                        <span className="file-icon">
-                                                            {file.type === 'PDF' ? '📕' :
-                                                                file.type === 'DOCX' ? '📘' :
-                                                                    file.type === 'FILE' ? '📂' :
-                                                                        file.type === 'VIDEO' ? '🎬' :
-                                                                            file.type === 'LINK' ? '🌐' :
-                                                                                file.type === 'EGG' ? '🥚' : '📗'}
-                                                        </span>
-                                                        <div className="file-meta">
-                                                            <span className="file-name">{file.name}</span>
-                                                            <span className="file-size">{file.size}</span>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* 2. 文件下載檔案櫃 */}
+                        <section className="section fade-in" style={{ animationDelay: '0.2s' }}>
+                            <div className="section-header-vertical">
+                                <h2 className="section-title">📂 文件下載檔案櫃</h2>
+                                <p className="section-subtitle">（僅供參考，實際請依官網公告為主）</p>
+                            </div>
+                            <div className="cabinet-vertical-list">
+                                {fileCabinet.map((cabinet, idx) => {
+                                    const currentPage = cabinetPages[idx] || 1;
+                                    const totalPages = Math.ceil(cabinet.files.length / FILES_PER_PAGE);
+                                    const startIndex = (currentPage - 1) * FILES_PER_PAGE;
+                                    const currentFiles = cabinet.files.slice(startIndex, startIndex + FILES_PER_PAGE);
+                                    const isExpanded = expandedCabinets[idx] || false;
+
+                                    return (
+                                        <div key={idx} className={`cabinet-card ${isExpanded ? 'is-expanded' : ''}`}>
+                                            <div className="cabinet-category" onClick={() => toggleCabinet(idx)}>
+                                                <span>{cabinet.category} <span className="item-count">({cabinet.files.length})</span></span>
+                                                <span className="cabinet-expand-icon">{isExpanded ? '−' : '+'}</span>
+                                            </div>
+                                            <div className="cabinet-content">
+                                                <div className="file-list">
+                                                    {currentFiles.map(file => (
+                                                        <div key={file.id} className="file-item">
+                                                            <div className="file-info">
+                                                                <span className="file-icon">
+                                                                    {file.type === 'PDF' ? '📕' :
+                                                                        file.type === 'DOCX' ? '📘' :
+                                                                            file.type === 'FILE' ? '📂' :
+                                                                                file.type === 'VIDEO' ? '🎬' :
+                                                                                    file.type === 'LINK' ? '🌐' :
+                                                                                        file.type === 'EGG' ? '🥚' : '📗'}
+                                                                </span>
+                                                                <div className="file-meta">
+                                                                    <span className="file-name">{file.name}</span>
+                                                                    <span className="file-size">{file.size}</span>
+                                                                </div>
+                                                            </div>
+                                                            <button onClick={() => handleAccessResource(file.name, file.url, true)} className="download-btn" title="下載檔案">
+                                                                📥
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {totalPages > 1 && (
+                                                    <div className="cabinet-pagination">
+                                                        <div className="pagination-controls">
+                                                            <button className="page-btn" onClick={() => handlePageChange(idx, -1)} disabled={currentPage === 1}>← 上一頁</button>
+                                                            <span className="page-info">{currentPage} / {totalPages}</span>
+                                                            <button className="page-btn" onClick={() => handlePageChange(idx, 1)} disabled={currentPage === totalPages}>下一頁 →</button>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleAccessResource(file.name, file.url, true)} className="download-btn" title="下載檔案">
-                                                        📥
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {totalPages > 1 && (
-                                            <div className="cabinet-pagination">
-                                                <div className="pagination-controls">
-                                                    <button className="page-btn" onClick={() => handlePageChange(idx, -1)} disabled={currentPage === 1}>← 上一頁</button>
-                                                    <span className="page-info">{currentPage} / {totalPages}</span>
-                                                    <button className="page-btn" onClick={() => handlePageChange(idx, 1)} disabled={currentPage === totalPages}>下一頁 →</button>
-                                                </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    </>
+                )}
             </main>
 
             <MessageBox

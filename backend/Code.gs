@@ -65,6 +65,9 @@ function handleRequest(e) {
       case 'updateProfile':
         result = handleUpdateProfile(params);
         break;
+      case 'getResources':
+        result = handleGetResources();
+        break;
       default:
         result = { success: false, message: '未知的操作：' + action };
     }
@@ -1005,5 +1008,124 @@ function handleLookupTeachers(params) {
     };
   } catch (e) {
     return { success: false, message: '搜尋失敗：' + e.toString() };
+  }
+}
+
+/**
+ * 處理獲取資源中心資料
+ */
+function handleGetResources() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    
+    // 1. 讀取相關連結 (QUICK_LINKS)
+    // 欄位：Section Name, Section Color, Category Name, Link Name, URL
+    const linksSheet = ss.getSheetByName('QUICK_LINKS');
+    let quickLinks = {
+      SECTIONS: []
+    };
+    
+    if (linksSheet) {
+      const data = linksSheet.getDataRange().getValues();
+      const rows = data.slice(1);
+      const sectionsMap = {};
+      let globalGroupId = 1;
+      let lastSectionName = "";
+      let lastSectionColor = "";
+      let lastCategoryName = "";
+      
+      rows.forEach(row => {
+        let sectionName = row[0] || lastSectionName;
+        let sectionColor = row[1] || lastSectionColor;
+        let categoryName = row[2] || lastCategoryName;
+        const linkName = row[3];
+        const url = row[4];
+        
+        // 更新追蹤器
+        if (row[0]) lastSectionName = row[0];
+        if (row[1]) lastSectionColor = row[1];
+        if (row[2]) lastCategoryName = row[2];
+        
+        if (!sectionName || !categoryName || !linkName) return;
+        
+        if (!sectionsMap[sectionName]) {
+          sectionsMap[sectionName] = {
+            title: sectionName,
+            color: sectionColor || '#862D2D',
+            categories: {}
+          };
+        }
+        
+        const section = sectionsMap[sectionName];
+        if (!section.categories[categoryName]) {
+          section.categories[categoryName] = {
+            id: globalGroupId++,
+            text: categoryName,
+            links: []
+          };
+        }
+        
+        section.categories[categoryName].links.push({
+          name: linkName,
+          url: url
+        });
+      });
+      
+      // 將 Map 轉換為 Array，並將 categories 轉為 Array
+      quickLinks.SECTIONS = Object.values(sectionsMap).map(section => ({
+        title: section.title,
+        color: section.color,
+        groups: Object.values(section.categories)
+      }));
+    }
+
+    // 2. 讀取檔案櫃 (FILE_CABINET)
+    const fileSheet = ss.getSheetByName('FILE_CABINET');
+    let fileCabinet = [];
+    
+    if (fileSheet) {
+      const data = fileSheet.getDataRange().getValues();
+      const rows = data.slice(1);
+      
+      const cabinetsMap = {};
+      let lastCategory = "";
+      
+      rows.forEach(row => {
+        let category = row[0] || lastCategory;
+        const fileName = row[1];
+        const size = row[2];
+        const type = row[3];
+        const url = row[4];
+        
+        if (row[0]) lastCategory = row[0];
+        
+        if (!category || !fileName) return;
+        
+        if (!cabinetsMap[category]) {
+          cabinetsMap[category] = {
+            category: category,
+            files: []
+          };
+        }
+        cabinetsMap[category].files.push({
+          id: cabinetsMap[category].files.length + 1,
+          name: fileName,
+          size: size,
+          type: type || 'PDF',
+          url: url
+        });
+      });
+      fileCabinet = Object.values(cabinetsMap);
+    }
+
+    return {
+      success: true,
+      data: {
+        quickLinks: quickLinks,
+        fileCabinet: fileCabinet
+      }
+    };
+  } catch (error) {
+    return { success: false, message: '獲取資源失敗：' + error.toString() };
   }
 }

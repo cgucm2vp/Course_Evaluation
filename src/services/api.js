@@ -231,6 +231,23 @@ const api = {
             console.error('Lookup teachers error:', error);
             return { success: false, message: '檢索教師失敗' };
         }
+    },
+
+    /**
+     * 獲取動態資源 (相關連結與檔案下載)
+     */
+    fetchResources: async () => {
+        try {
+            const response = await axios.get(config.API_BASE_URL, {
+                params: {
+                    action: 'getResources'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Fetch resources error:', error);
+            return { success: false, message: '獲取資源失敗，請檢查網路連線' };
+        }
     }
 };
 export default api;
